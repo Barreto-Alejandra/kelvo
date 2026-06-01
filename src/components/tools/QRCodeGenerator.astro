@@ -13,115 +13,447 @@ const t = useTranslations(locale);
 ---
 
 <div class="panel" id="qr-root" data-empty={L.empty}>
-  <div class="field">
-    <label for="qr-text">{L.inputLabel}</label>
-    <input type="text" id="qr-text" placeholder={L.placeholder} value="https://" autocomplete="off" />
-  </div>
+  <div class="qr-layout">
+    <div class="qr-controls">
+      <!-- ── Content ─────────────────────────────── -->
+      <h3 class="qr-h">{L.contentSection}</h3>
+      <div class="field">
+        <label for="qr-type">{L.contentType}</label>
+        <select id="qr-type">
+          <option value="url">{L.typeUrl}</option>
+          <option value="text">{L.typeText}</option>
+          <option value="wifi">{L.typeWifi}</option>
+          <option value="email">{L.typeEmail}</option>
+          <option value="phone">{L.typePhone}</option>
+          <option value="sms">{L.typeSms}</option>
+          <option value="vcard">{L.typeVcard}</option>
+        </select>
+      </div>
 
-  <div class="row">
-    <div>
-      <label for="qr-fg">{L.fg}</label>
-      <input type="color" id="qr-fg" value="#111827" />
-    </div>
-    <div>
-      <label for="qr-bg">{L.bg}</label>
-      <input type="color" id="qr-bg" value="#ffffff" />
-    </div>
-    <div style="flex:1;min-width:160px">
-      <label for="qr-size">{L.size}: <span id="qr-size-val" style="color:var(--accent)">320</span> px</label>
-      <input type="range" id="qr-size" min="160" max="640" step="8" value="320" />
-    </div>
-  </div>
+      <div class="qr-fields" data-type="url">
+        <div class="field">
+          <label for="qr-url">{L.url}</label>
+          <input type="url" id="qr-url" placeholder={L.placeholder} value="https://kelvo.com" autocomplete="off" />
+        </div>
+      </div>
 
-  <div style="text-align:center;margin:22px 0">
-    <canvas id="qr-canvas" style="max-width:100%;border-radius:var(--radius-sm)"></canvas>
-    <p class="muted" id="qr-empty"></p>
-  </div>
+      <div class="qr-fields hidden" data-type="text">
+        <div class="field">
+          <label for="qr-text-val">{L.text}</label>
+          <textarea id="qr-text-val" rows="3"></textarea>
+        </div>
+      </div>
 
-  <div class="row">
-    <button class="btn" id="qr-png" type="button">{L.downloadPng}</button>
-    <button class="btn secondary" id="qr-svg" type="button">{L.downloadSvg}</button>
-  </div>
-  <div class="privacy-note" style="margin-top:12px">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-    {t('common.processedLocally')}
+      <div class="qr-fields hidden" data-type="wifi">
+        <div class="field"><label for="qr-wifi-ssid">{L.wifiSsid}</label><input type="text" id="qr-wifi-ssid" autocomplete="off" /></div>
+        <div class="row">
+          <div style="flex:1;min-width:140px"><label for="qr-wifi-pass">{L.wifiPassword}</label><input type="text" id="qr-wifi-pass" autocomplete="off" /></div>
+          <div style="min-width:130px"><label for="qr-wifi-enc">{L.wifiEnc}</label>
+            <select id="qr-wifi-enc">
+              <option value="WPA">{L.encWpa}</option>
+              <option value="WEP">{L.encWep}</option>
+              <option value="nopass">{L.encNone}</option>
+            </select>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="qr-wifi-hidden" /> {L.wifiHidden}</label>
+      </div>
+
+      <div class="qr-fields hidden" data-type="email">
+        <div class="field"><label for="qr-email-to">{L.emailTo}</label><input type="email" id="qr-email-to" autocomplete="off" /></div>
+        <div class="field"><label for="qr-email-sub">{L.emailSubject}</label><input type="text" id="qr-email-sub" autocomplete="off" /></div>
+        <div class="field"><label for="qr-email-body">{L.emailBody}</label><textarea id="qr-email-body" rows="2"></textarea></div>
+      </div>
+
+      <div class="qr-fields hidden" data-type="phone">
+        <div class="field"><label for="qr-phone">{L.phoneNumber}</label><input type="tel" id="qr-phone" placeholder="+54 9 11 1234 5678" autocomplete="off" /></div>
+      </div>
+
+      <div class="qr-fields hidden" data-type="sms">
+        <div class="field"><label for="qr-sms-num">{L.smsNumber}</label><input type="tel" id="qr-sms-num" autocomplete="off" /></div>
+        <div class="field"><label for="qr-sms-msg">{L.smsMessage}</label><textarea id="qr-sms-msg" rows="2"></textarea></div>
+      </div>
+
+      <div class="qr-fields hidden" data-type="vcard">
+        <div class="row">
+          <div style="flex:1;min-width:130px"><label for="qr-vc-first">{L.vcFirst}</label><input type="text" id="qr-vc-first" autocomplete="off" /></div>
+          <div style="flex:1;min-width:130px"><label for="qr-vc-last">{L.vcLast}</label><input type="text" id="qr-vc-last" autocomplete="off" /></div>
+        </div>
+        <div class="row">
+          <div style="flex:1;min-width:130px"><label for="qr-vc-org">{L.vcOrg}</label><input type="text" id="qr-vc-org" autocomplete="off" /></div>
+          <div style="flex:1;min-width:130px"><label for="qr-vc-title">{L.vcTitle}</label><input type="text" id="qr-vc-title" autocomplete="off" /></div>
+        </div>
+        <div class="row">
+          <div style="flex:1;min-width:130px"><label for="qr-vc-phone">{L.vcPhone}</label><input type="tel" id="qr-vc-phone" autocomplete="off" /></div>
+          <div style="flex:1;min-width:130px"><label for="qr-vc-email">{L.vcEmail}</label><input type="email" id="qr-vc-email" autocomplete="off" /></div>
+        </div>
+        <div class="field"><label for="qr-vc-url">{L.vcUrl}</label><input type="url" id="qr-vc-url" autocomplete="off" /></div>
+      </div>
+
+      <!-- ── Style ───────────────────────────────── -->
+      <h3 class="qr-h">{L.styleSection}</h3>
+      <div class="field">
+        <label for="qr-dot">{L.dotStyle}</label>
+        <select id="qr-dot">
+          <option value="square">{L.shapeSquare}</option>
+          <option value="rounded" selected>{L.shapeRounded}</option>
+          <option value="dots">{L.shapeDots}</option>
+          <option value="extra-rounded">{L.shapeExtraRounded}</option>
+          <option value="classy">{L.shapeClassy}</option>
+          <option value="classy-rounded">{L.shapeClassyRounded}</option>
+        </select>
+      </div>
+      <div class="row">
+        <div style="flex:1;min-width:150px">
+          <label for="qr-csq">{L.cornerSquareStyle}</label>
+          <select id="qr-csq">
+            <option value="square">{L.shapeSquare}</option>
+            <option value="extra-rounded" selected>{L.shapeExtraRounded}</option>
+            <option value="dot">{L.shapeDot}</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:150px">
+          <label for="qr-cdot">{L.cornerDotStyle}</label>
+          <select id="qr-cdot">
+            <option value="square">{L.shapeSquare}</option>
+            <option value="dot" selected>{L.shapeDot}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row" style="align-items:flex-end">
+        <div><label for="qr-fg">{L.fg}</label><input type="color" id="qr-fg" value="#111827" /></div>
+        <div class="qr-grad-c hidden"><label for="qr-fg2">{L.color2}</label><input type="color" id="qr-fg2" value="#4f46e5" /></div>
+        <div class="qr-grad-c hidden" style="min-width:120px"><label for="qr-grad-type">{L.gradientType}</label>
+          <select id="qr-grad-type"><option value="linear">{L.gradLinear}</option><option value="radial">{L.gradRadial}</option></select>
+        </div>
+      </div>
+      <label class="check"><input type="checkbox" id="qr-grad" /> {L.useGradient}</label>
+
+      <div class="row" style="align-items:flex-end;margin-top:6px">
+        <div><label for="qr-bg">{L.bg}</label><input type="color" id="qr-bg" value="#ffffff" /></div>
+      </div>
+      <label class="check"><input type="checkbox" id="qr-transparent" /> {L.transparentBg}</label>
+
+      <!-- Logo -->
+      <div class="field" style="margin-top:14px">
+        <label>{L.logo}</label>
+        <div class="row">
+          <button class="btn secondary" id="qr-logo-btn" type="button">{L.addLogo}</button>
+          <button class="btn secondary hidden" id="qr-logo-remove" type="button">{L.removeLogo}</button>
+          <input type="file" id="qr-logo-input" accept="image/*" class="hidden" />
+        </div>
+        <div class="qr-logo-size hidden" style="margin-top:10px">
+          <label for="qr-logo-size">{L.logoSize}: <span id="qr-logo-size-val" style="color:var(--accent)">40</span>%</label>
+          <input type="range" id="qr-logo-size" min="10" max="50" step="1" value="40" />
+        </div>
+      </div>
+
+      <!-- EC + size -->
+      <div class="row" style="margin-top:8px">
+        <div style="flex:1;min-width:150px">
+          <label for="qr-ec">{L.errorCorrection}</label>
+          <select id="qr-ec">
+            <option value="L">{L.ecLow}</option>
+            <option value="M" selected>{L.ecMedium}</option>
+            <option value="Q">{L.ecQuartile}</option>
+            <option value="H">{L.ecHigh}</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:150px">
+          <label for="qr-size">{L.size}: <span id="qr-size-val" style="color:var(--accent)">320</span> px</label>
+          <input type="range" id="qr-size" min="160" max="640" step="8" value="320" />
+        </div>
+      </div>
+      <p class="muted hidden" id="qr-ec-hint" style="font-size:0.8rem;margin:4px 0 0">{L.ecLogoHint}</p>
+    </div>
+
+    <!-- ── Preview + downloads ─────────────────────── -->
+    <div class="qr-preview-wrap">
+      <div id="qr-preview" class="qr-preview"></div>
+      <p class="muted" id="qr-empty"></p>
+      <div class="row" style="justify-content:center;margin-top:14px">
+        <button class="btn" id="qr-png" type="button">{L.downloadPng}</button>
+        <button class="btn secondary" id="qr-svg" type="button">{L.downloadSvg}</button>
+        <button class="btn secondary" id="qr-jpg" type="button">{L.downloadJpg}</button>
+      </div>
+      <div class="privacy-note" style="justify-content:center;margin-top:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        {t('common.processedLocally')}
+      </div>
+    </div>
   </div>
 </div>
 
+<style>
+  .qr-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+  @media (min-width: 800px) {
+    .qr-layout {
+      grid-template-columns: 1fr 320px;
+    }
+    .qr-preview-wrap {
+      position: sticky;
+      top: 78px;
+      align-self: start;
+    }
+  }
+  .qr-h {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin: 22px 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .qr-h:first-child { margin-top: 0; }
+  .qr-controls .field { margin-bottom: 12px; }
+  .qr-preview-wrap { text-align: center; }
+  .qr-preview {
+    display: inline-block;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg-soft);
+    background-image:
+      linear-gradient(45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(-45deg, var(--border) 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, var(--border) 75%),
+      linear-gradient(-45deg, transparent 75%, var(--border) 75%);
+    background-size: 16px 16px;
+    background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+    line-height: 0;
+  }
+  .qr-preview :global(canvas),
+  .qr-preview :global(svg) {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+
 <script>
-  import QRCode from 'qrcode';
+  import QRCodeStyling from 'qr-code-styling';
 
-  const root = document.getElementById('qr-root') as HTMLElement;
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const root = $('qr-root') as HTMLElement;
   const emptyMsg = root.dataset.empty || '';
-  const text = document.getElementById('qr-text') as HTMLInputElement;
-  const fg = document.getElementById('qr-fg') as HTMLInputElement;
-  const bg = document.getElementById('qr-bg') as HTMLInputElement;
-  const size = document.getElementById('qr-size') as HTMLInputElement;
-  const sizeVal = document.getElementById('qr-size-val') as HTMLElement;
-  const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
-  const emptyEl = document.getElementById('qr-empty') as HTMLElement;
-  const pngBtn = document.getElementById('qr-png') as HTMLButtonElement;
-  const svgBtn = document.getElementById('qr-svg') as HTMLButtonElement;
 
-  function opts() {
+  const typeEl = $('qr-type') as HTMLSelectElement;
+  const dotEl = $('qr-dot') as HTMLSelectElement;
+  const csqEl = $('qr-csq') as HTMLSelectElement;
+  const cdotEl = $('qr-cdot') as HTMLSelectElement;
+  const fgEl = $('qr-fg') as HTMLInputElement;
+  const fg2El = $('qr-fg2') as HTMLInputElement;
+  const gradEl = $('qr-grad') as HTMLInputElement;
+  const gradTypeEl = $('qr-grad-type') as HTMLSelectElement;
+  const bgEl = $('qr-bg') as HTMLInputElement;
+  const transparentEl = $('qr-transparent') as HTMLInputElement;
+  const ecEl = $('qr-ec') as HTMLSelectElement;
+  const ecHint = $('qr-ec-hint');
+  const sizeEl = $('qr-size') as HTMLInputElement;
+  const sizeVal = $('qr-size-val');
+  const logoBtn = $('qr-logo-btn');
+  const logoRemove = $('qr-logo-remove');
+  const logoInput = $('qr-logo-input') as HTMLInputElement;
+  const logoSizeWrap = document.querySelector('.qr-logo-size') as HTMLElement;
+  const logoSizeEl = $('qr-logo-size') as HTMLInputElement;
+  const logoSizeVal = $('qr-logo-size-val');
+  const preview = $('qr-preview');
+  const emptyEl = $('qr-empty');
+  const dlBtns = ['qr-png', 'qr-svg', 'qr-jpg'].map((id) => $(id) as HTMLButtonElement);
+
+  let logoData = '';
+  let qr: any = null;
+
+  const val = (id: string) => ((document.getElementById(id) as HTMLInputElement)?.value || '').trim();
+  const wifiEsc = (s: string) => s.replace(/([\\;,:"])/g, '\\$1');
+
+  function buildPayload(): string {
+    switch (typeEl.value) {
+      case 'url': {
+        const u = val('qr-url');
+        return u && u !== 'https://' && u !== 'http://' ? u : '';
+      }
+      case 'text':
+        return (document.getElementById('qr-text-val') as HTMLTextAreaElement).value.trim();
+      case 'wifi': {
+        const ssid = val('qr-wifi-ssid');
+        if (!ssid) return '';
+        const enc = (document.getElementById('qr-wifi-enc') as HTMLSelectElement).value;
+        const pass = (document.getElementById('qr-wifi-pass') as HTMLInputElement).value;
+        const hidden = (document.getElementById('qr-wifi-hidden') as HTMLInputElement).checked;
+        return `WIFI:T:${enc};S:${wifiEsc(ssid)};${enc !== 'nopass' ? `P:${wifiEsc(pass)};` : ''}${hidden ? 'H:true;' : ''};`;
+      }
+      case 'email': {
+        const to = val('qr-email-to');
+        if (!to) return '';
+        const sub = val('qr-email-sub');
+        const body = (document.getElementById('qr-email-body') as HTMLTextAreaElement).value;
+        const q: string[] = [];
+        if (sub) q.push('subject=' + encodeURIComponent(sub));
+        if (body) q.push('body=' + encodeURIComponent(body));
+        return 'mailto:' + to + (q.length ? '?' + q.join('&') : '');
+      }
+      case 'phone': {
+        const n = val('qr-phone');
+        return n ? 'tel:' + n.replace(/\s+/g, '') : '';
+      }
+      case 'sms': {
+        const n = val('qr-sms-num');
+        if (!n) return '';
+        const m = (document.getElementById('qr-sms-msg') as HTMLTextAreaElement).value;
+        return `SMSTO:${n.replace(/\s+/g, '')}:${m}`;
+      }
+      case 'vcard': {
+        const f = val('qr-vc-first');
+        const l = val('qr-vc-last');
+        if (!f && !l) return '';
+        const lines = ['BEGIN:VCARD', 'VERSION:3.0', `N:${l};${f};;;`, `FN:${(f + ' ' + l).trim()}`];
+        const org = val('qr-vc-org'); if (org) lines.push('ORG:' + org);
+        const title = val('qr-vc-title'); if (title) lines.push('TITLE:' + title);
+        const phone = val('qr-vc-phone'); if (phone) lines.push('TEL:' + phone);
+        const email = val('qr-vc-email'); if (email) lines.push('EMAIL:' + email);
+        const url = val('qr-vc-url'); if (url) lines.push('URL:' + url);
+        lines.push('END:VCARD');
+        return lines.join('\n');
+      }
+    }
+    return '';
+  }
+
+  function buildOptions(data: string) {
+    const useGrad = gradEl.checked;
+    const fg = fgEl.value;
+    const grad = useGrad
+      ? { type: gradTypeEl.value, rotation: 0, colorStops: [{ offset: 0, color: fg }, { offset: 1, color: fg2El.value }] }
+      : undefined;
+    const paint = (type: string) => (useGrad ? { type, gradient: grad } : { type, color: fg });
+    const sizeN = parseInt(sizeEl.value, 10);
+    const ec = logoData ? 'H' : ecEl.value;
     return {
-      width: parseInt(size.value, 10),
-      margin: 2,
-      color: { dark: fg.value, light: bg.value },
-      errorCorrectionLevel: 'M' as const,
+      width: sizeN,
+      height: sizeN,
+      type: 'canvas',
+      data,
+      margin: 10,
+      qrOptions: { errorCorrectionLevel: ec },
+      image: logoData || undefined,
+      imageOptions: { margin: 5, imageSize: parseInt(logoSizeEl.value, 10) / 100, hideBackgroundDots: true, crossOrigin: 'anonymous' },
+      dotsOptions: paint(dotEl.value),
+      cornersSquareOptions: paint(csqEl.value),
+      cornersDotOptions: paint(cdotEl.value),
+      backgroundOptions: { color: transparentEl.checked ? 'rgba(0,0,0,0)' : bgEl.value },
     };
   }
 
   function setDownloadable(on: boolean) {
-    pngBtn.disabled = !on;
-    svgBtn.disabled = !on;
-    pngBtn.style.opacity = svgBtn.style.opacity = on ? '1' : '0.5';
-    canvas.style.display = on ? 'inline-block' : 'none';
+    dlBtns.forEach((b) => {
+      b.disabled = !on;
+      b.style.opacity = on ? '1' : '0.5';
+    });
+    preview.style.display = on ? 'inline-block' : 'none';
     emptyEl.textContent = on ? '' : emptyMsg;
   }
 
-  async function render() {
-    const value = text.value.trim();
-    if (!value) {
-      setDownloadable(false);
-      return;
-    }
+  function render() {
+    const data = buildPayload();
+    if (!data) { setDownloadable(false); return; }
+    const opts = buildOptions(data);
     try {
-      await QRCode.toCanvas(canvas, value, opts());
+      if (!qr) {
+        qr = new QRCodeStyling(opts as any);
+        qr.append(preview);
+      } else {
+        qr.update(opts as any);
+      }
       setDownloadable(true);
     } catch {
       setDownloadable(false);
     }
   }
 
-  function download(href: string, name: string) {
-    const a = document.createElement('a');
-    a.href = href;
-    a.download = name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
+  let debounce: number | undefined;
+  function renderSoon() {
+    window.clearTimeout(debounce);
+    debounce = window.setTimeout(render, 130);
   }
 
-  pngBtn.addEventListener('click', () => {
-    if (!text.value.trim()) return;
-    download(canvas.toDataURL('image/png'), 'qr-code.png');
-  });
+  async function downloadAs(ext: 'png' | 'svg' | 'jpeg') {
+    const data = buildPayload();
+    if (!data) return;
+    const opts: any = { ...buildOptions(data), type: ext === 'svg' ? 'svg' : 'canvas' };
+    try {
+      await new QRCodeStyling(opts).download({ name: 'kelvo-qr', extension: ext });
+    } catch {
+      /* ignore */
+    }
+  }
 
-  svgBtn.addEventListener('click', async () => {
-    const value = text.value.trim();
-    if (!value) return;
-    const svg = await QRCode.toString(value, { ...opts(), type: 'svg' });
-    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
-    download(url, 'qr-code.svg');
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-  });
-
-  [text, fg, bg].forEach((el) => el.addEventListener('input', render));
-  size.addEventListener('input', () => {
-    sizeVal.textContent = size.value;
+  // Content type switching
+  typeEl.addEventListener('change', () => {
+    document.querySelectorAll('.qr-fields').forEach((el) => {
+      el.classList.toggle('hidden', (el as HTMLElement).dataset.type !== typeEl.value);
+    });
     render();
   });
+
+  // Gradient toggle
+  gradEl.addEventListener('change', () => {
+    document.querySelectorAll('.qr-grad-c').forEach((el) => el.classList.toggle('hidden', !gradEl.checked));
+    render();
+  });
+
+  // Size + logo size labels
+  sizeEl.addEventListener('input', () => { sizeVal.textContent = sizeEl.value; renderSoon(); });
+  logoSizeEl.addEventListener('input', () => { logoSizeVal.textContent = logoSizeEl.value; renderSoon(); });
+
+  // Logo upload (stays local)
+  logoBtn.addEventListener('click', () => logoInput.click());
+  logoInput.addEventListener('change', () => {
+    const file = logoInput.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      logoData = String(reader.result);
+      logoRemove.classList.remove('hidden');
+      logoSizeWrap.classList.remove('hidden');
+      ecEl.value = 'H';
+      ecEl.disabled = true;
+      ecHint.classList.remove('hidden');
+      render();
+    };
+    reader.readAsDataURL(file);
+  });
+  logoRemove.addEventListener('click', () => {
+    logoData = '';
+    logoInput.value = '';
+    logoRemove.classList.add('hidden');
+    logoSizeWrap.classList.add('hidden');
+    ecEl.disabled = false;
+    ecHint.classList.add('hidden');
+    render();
+  });
+
+  // Re-render on any control change. Text-like inputs debounce; the rest are instant.
+  root.querySelectorAll('input, textarea, select').forEach((el) => {
+    const tag = el.tagName.toLowerCase();
+    const typ = (el as HTMLInputElement).type;
+    if (tag === 'textarea' || typ === 'text' || typ === 'url' || typ === 'email' || typ === 'tel') {
+      el.addEventListener('input', renderSoon);
+    } else {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    }
+  });
+
+  // Downloads
+  $('qr-png').addEventListener('click', () => downloadAs('png'));
+  $('qr-svg').addEventListener('click', () => downloadAs('svg'));
+  $('qr-jpg').addEventListener('click', () => downloadAs('jpeg'));
 
   render();
 </script>
