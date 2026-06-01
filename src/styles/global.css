@@ -5,7 +5,7 @@
   --border: #e6e8ec;
   --text: #14181f;
   --text-soft: #5a6472;
-  --text-faint: #8b94a3;
+  --text-faint: #6b7280;
   --accent: #4f46e5;
   --accent-hover: #4338ca;
   --accent-soft: #eef0fe;
@@ -31,7 +31,7 @@
     --border: #262d39;
     --text: #e7ebf1;
     --text-soft: #9aa5b4;
-    --text-faint: #6b7686;
+    --text-faint: #8b94a3;
     --accent: #818cf8;
     --accent-hover: #a5b0fb;
     --accent-soft: #1c2030;
@@ -46,6 +46,13 @@
 
 html {
   scroll-behavior: smooth;
+  /* Offset anchor jumps so section titles aren't hidden under the sticky header. */
+  scroll-padding-top: 76px;
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 body {

@@ -31,7 +31,9 @@ export default defineConfig({
     }),
   ],
   build: {
-    inlineStylesheets: 'auto',
+    // Inline all CSS so there is no render-blocking stylesheet request — the
+    // site's CSS is small and each page paints instantly from the HTML.
+    inlineStylesheets: 'always',
   },
   compressHTML: true,
 });
