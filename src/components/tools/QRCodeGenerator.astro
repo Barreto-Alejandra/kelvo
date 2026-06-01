@@ -93,6 +93,15 @@ const t = useTranslations(locale);
       <!-- ── Style ───────────────────────────────── -->
       <h3 class="qr-h">{L.styleSection}</h3>
       <div class="field">
+        <label>{L.presets}</label>
+        <div class="qr-presets">
+          <button type="button" class="qr-preset" data-preset="classic">{L.presetClassic}</button>
+          <button type="button" class="qr-preset" data-preset="rounded">{L.presetRounded}</button>
+          <button type="button" class="qr-preset" data-preset="dots">{L.presetDots}</button>
+          <button type="button" class="qr-preset" data-preset="branded">{L.presetBranded}</button>
+        </div>
+      </div>
+      <div class="field">
         <label for="qr-dot">{L.dotStyle}</label>
         <select id="qr-dot">
           <option value="square">{L.shapeSquare}</option>
@@ -181,6 +190,7 @@ const t = useTranslations(locale);
         <button class="btn primary-dl" id="qr-png" type="button">{L.downloadPng}</button>
         <button class="btn secondary" id="qr-svg" type="button">{L.downloadSvg}</button>
         <button class="btn secondary" id="qr-jpg" type="button">{L.downloadJpg}</button>
+        <button class="btn secondary full-dl" id="qr-pdf" type="button">{L.downloadPdf}</button>
       </div>
       <div class="privacy-note" style="justify-content:center;margin-top:12px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -277,6 +287,29 @@ const t = useTranslations(locale);
     margin-top: 18px;
   }
   .qr-actions .primary-dl { grid-column: 1 / -1; }
+  .qr-actions .full-dl { grid-column: 1 / -1; }
+  .qr-presets {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .qr-preset {
+    font: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    padding: 7px 13px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--bg-soft);
+    color: var(--text-soft);
+    cursor: pointer;
+    transition: border-color 0.15s, color 0.15s, background 0.15s;
+  }
+  .qr-preset:hover {
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+    color: var(--text);
+    background: var(--accent-soft);
+  }
 </style>
 
 <script>
@@ -438,6 +471,29 @@ const t = useTranslations(locale);
     }
   }
 
+  // PDF export — jsPDF is loaded on demand so it never weighs down the page.
+  async function downloadPdf() {
+    const data = buildPayload();
+    if (!data) return;
+    try {
+      const { jsPDF } = await import('jspdf');
+      const inst: any = new QRCodeStyling({ ...buildOptions(data), type: 'canvas' });
+      const blob: Blob = await inst.getRawData('png');
+      const dataUrl: string = await new Promise((res) => {
+        const fr = new FileReader();
+        fr.onload = () => res(String(fr.result));
+        fr.readAsDataURL(blob);
+      });
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4' });
+      const pageW = pdf.internal.pageSize.getWidth();
+      const s = 90;
+      pdf.addImage(dataUrl, 'PNG', (pageW - s) / 2, 40, s, s);
+      pdf.save('kelvo-qr.pdf');
+    } catch {
+      /* ignore */
+    }
+  }
+
   // Content type switching
   typeEl.addEventListener('change', () => {
     document.querySelectorAll('.qr-fields').forEach((el) => {
@@ -446,9 +502,37 @@ const t = useTranslations(locale);
     render();
   });
 
+  function syncGradient() {
+    document.querySelectorAll('.qr-grad-c').forEach((el) => el.classList.toggle('hidden', !gradEl.checked));
+  }
+
+  // One-click style presets
+  const PRESETS: Record<string, any> = {
+    classic: { dot: 'square', csq: 'square', cdot: 'square', grad: false, fg: '#111827' },
+    rounded: { dot: 'rounded', csq: 'extra-rounded', cdot: 'dot', grad: false, fg: '#111827' },
+    dots: { dot: 'dots', csq: 'extra-rounded', cdot: 'dot', grad: false, fg: '#4f46e5' },
+    branded: { dot: 'classy-rounded', csq: 'extra-rounded', cdot: 'dot', grad: true, fg: '#4f46e5', fg2: '#ec4899', gradType: 'linear' },
+  };
+  function applyPreset(key: string) {
+    const p = PRESETS[key];
+    if (!p) return;
+    dotEl.value = p.dot;
+    csqEl.value = p.csq;
+    cdotEl.value = p.cdot;
+    fgEl.value = p.fg;
+    if (p.fg2) fg2El.value = p.fg2;
+    if (p.gradType) gradTypeEl.value = p.gradType;
+    gradEl.checked = !!p.grad;
+    syncGradient();
+    render();
+  }
+  document.querySelectorAll('.qr-preset').forEach((b) =>
+    b.addEventListener('click', () => applyPreset((b as HTMLElement).dataset.preset || '')),
+  );
+
   // Gradient toggle
   gradEl.addEventListener('change', () => {
-    document.querySelectorAll('.qr-grad-c').forEach((el) => el.classList.toggle('hidden', !gradEl.checked));
+    syncGradient();
     render();
   });
 
@@ -504,6 +588,7 @@ const t = useTranslations(locale);
   $('qr-png').addEventListener('click', () => downloadAs('png'));
   $('qr-svg').addEventListener('click', () => downloadAs('svg'));
   $('qr-jpg').addEventListener('click', () => downloadAs('jpeg'));
+  $('qr-pdf').addEventListener('click', () => downloadPdf());
 
   emptyEl.textContent = emptyMsg;
   render();
