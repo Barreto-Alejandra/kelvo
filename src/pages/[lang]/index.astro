@@ -2,7 +2,7 @@
 import { SITE, ORIGIN, type Locale } from '@/config';
 import { toolsByCategory } from '@/i18n/tools';
 import { useTranslations } from '@/i18n/ui';
-import { withBase } from '@/i18n/utils';
+import { withBase, toolPath } from '@/i18n/utils';
 import Layout from '@/layouts/Layout.astro';
 import ToolCard from '@/components/ToolCard.astro';
 import AdSlot from '@/components/AdSlot.astro';
@@ -25,6 +25,16 @@ const jsonLd = [
     url: ORIGIN + withBase(path),
     inLanguage: locale,
     description: t('site.intro'),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    itemListElement: [...generators, ...image].map((tool, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      url: ORIGIN + withBase(toolPath(locale, tool)),
+      name: tool.content[locale].name,
+    })),
   },
 ];
 ---
@@ -50,23 +60,33 @@ const jsonLd = [
     </div>
   </section>
 
-  <section id="generators" aria-labelledby="gen-title">
-    <div class="section-title">
-      <h2 id="gen-title">{t('home.section.generators')}</h2>
-    </div>
-    <div class="grid">
-      {generators.map((tool) => <ToolCard tool={tool} locale={locale} />)}
-    </div>
-  </section>
+  {/* Category filter — owns the active state; filters in place, no anchors, no scroll. */}
+  <div class="catfilter" role="group" aria-label={t('tab.filterAria')}>
+    <button type="button" class="seg is-active" data-cat="all" aria-pressed="true" tabindex="0">{t('tab.all')}</button>
+    <button type="button" class="seg" data-cat="generators" aria-pressed="false" tabindex="-1">{t('tab.generators')}</button>
+    <button type="button" class="seg" data-cat="image" aria-pressed="false" tabindex="-1">{t('tab.image')}</button>
+  </div>
+  <p class="sr-only" id="filter-status" role="status" aria-live="polite"></p>
 
-  <section id="image" aria-labelledby="img-title">
-    <div class="section-title">
-      <h2 id="img-title">{t('home.section.image')}</h2>
-    </div>
-    <div class="grid">
-      {image.map((tool) => <ToolCard tool={tool} locale={locale} />)}
-    </div>
-  </section>
+  <div data-filter-root>
+    <section id="generators" class="cat-section" data-cat="generators" aria-labelledby="gen-title">
+      <div class="section-title">
+        <h2 id="gen-title">{t('home.section.generators')}</h2>
+      </div>
+      <div class="grid">
+        {generators.map((tool) => <ToolCard tool={tool} locale={locale} />)}
+      </div>
+    </section>
+
+    <section id="image" class="cat-section" data-cat="image" aria-labelledby="img-title">
+      <div class="section-title">
+        <h2 id="img-title">{t('home.section.image')}</h2>
+      </div>
+      <div class="grid">
+        {image.map((tool) => <ToolCard tool={tool} locale={locale} />)}
+      </div>
+    </section>
+  </div>
 
   <AdSlot locale={locale} />
 
@@ -77,50 +97,66 @@ const jsonLd = [
 </Layout>
 
 <script>
-  // Scroll-spy: highlight the nav item for the section in view. Also activates
-  // immediately on click, and treats "scrolled to the bottom" as the last
-  // section being active (so short pages still light up the final item).
-  const navLinks = new Map<string, HTMLAnchorElement>();
-  document.querySelectorAll<HTMLAnchorElement>('.header-nav a[href*="#"]').forEach((a) => {
-    const id = (a.getAttribute('href') || '').split('#')[1];
-    if (id) navLinks.set(id, a);
-  });
-  const sections = [...navLinks.keys()]
-    .map((id) => document.getElementById(id))
-    .filter((el): el is HTMLElement => !!el);
+  // Category filter controller. The control is the single source of truth for the
+  // active state (explicit selection — never inferred from scroll). Filtering is
+  // CSS-driven via [data-filter]; all tool links stay in the DOM (SEO + no-JS).
+  const group = document.querySelector('.catfilter');
+  const root = document.querySelector('[data-filter-root]');
+  const status = document.getElementById('filter-status');
 
-  if (sections.length) {
-    const headerH = (document.querySelector('.site-header') as HTMLElement)?.offsetHeight || 60;
-    const offset = headerH + 28;
+  if (group && root) {
+    const segs = [...group.querySelectorAll<HTMLButtonElement>('.seg')];
+    const valid = ['all', 'generators', 'image'];
+    const labelOf = (cat: string) =>
+      segs.find((s) => s.dataset.cat === cat)?.textContent?.trim() ?? '';
 
-    function setActive(id: string | null) {
-      navLinks.forEach((a, key) => a.classList.toggle('active', key === id));
-    }
-
-    function onScroll() {
-      const y = window.scrollY;
-      let active: string | null = null;
-      for (const s of sections) {
-        if (s.offsetTop - offset <= y) active = s.id;
-      }
-      const atBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 4;
-      if (atBottom) active = sections[sections.length - 1].id;
-      setActive(active);
-    }
-
-    let ticking = false;
-    window.addEventListener(
-      'scroll',
-      () => {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(() => { onScroll(); ticking = false; });
+    function apply(cat: string, focus: boolean) {
+      if (!valid.includes(cat)) cat = 'all';
+      root!.setAttribute('data-filter', cat);
+      segs.forEach((s) => {
+        const on = s.dataset.cat === cat;
+        s.classList.toggle('is-active', on);
+        s.setAttribute('aria-pressed', String(on));
+        s.tabIndex = on ? 0 : -1;
+      });
+      // Persist as a non-id hash so the browser never tries to scroll to it.
+      history.replaceState(
+        null,
+        '',
+        cat === 'all' ? location.pathname + location.search : '#cat=' + cat,
+      );
+      if (status) {
+        if (cat === 'all') {
+          status.textContent = '';
+        } else {
+          const n = root!.querySelectorAll(
+            '.cat-section[data-cat="' + cat + '"] .tool-card',
+          ).length;
+          status.textContent = n + ' · ' + labelOf(cat);
         }
-      },
-      { passive: true },
-    );
-    window.addEventListener('resize', onScroll);
-    navLinks.forEach((a, id) => a.addEventListener('click', () => setActive(id)));
-    onScroll();
+      }
+      if (focus) segs.find((s) => s.dataset.cat === cat)?.focus();
+    }
+
+    segs.forEach((s) => s.addEventListener('click', () => apply(s.dataset.cat || 'all', false)));
+
+    // Roving arrow-key support for a real segmented-control feel.
+    group.addEventListener('keydown', (e) => {
+      const ke = e as KeyboardEvent;
+      const i = segs.indexOf(document.activeElement as HTMLButtonElement);
+      if (i < 0) return;
+      let n = i;
+      if (ke.key === 'ArrowRight' || ke.key === 'ArrowDown') n = (i + 1) % segs.length;
+      else if (ke.key === 'ArrowLeft' || ke.key === 'ArrowUp') n = (i - 1 + segs.length) % segs.length;
+      else if (ke.key === 'Home') n = 0;
+      else if (ke.key === 'End') n = segs.length - 1;
+      else return;
+      ke.preventDefault();
+      apply(segs[n].dataset.cat || 'all', true);
+    });
+
+    const readHash = () => (location.hash.match(/^#cat=(generators|image)$/) || [null, 'all'])[1] as string;
+    apply(readHash(), false); // never scrolls
+    window.addEventListener('hashchange', () => apply(readHash(), false));
   }
 </script>

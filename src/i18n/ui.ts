@@ -6,9 +6,11 @@ export const ui = {
     'site.tagline': 'Single-purpose web tools that just work.',
     'site.intro':
       'Free online tools that do one thing well. No signup, no upload, no tracking — everything runs right in your browser.',
-    'nav.generators': 'Generators',
-    'nav.image': 'Image tools',
     'nav.allTools': 'All tools',
+    'tab.all': 'All',
+    'tab.generators': 'Generators',
+    'tab.image': 'Image',
+    'tab.filterAria': 'Filter tools by category',
     'home.heroTitle': 'Tiny web tools that just work',
     'home.heroSubtitle':
       'No signup. No upload. No tracking. Open it, use it, done — everything runs in your browser.',
@@ -41,9 +43,11 @@ export const ui = {
     'site.tagline': 'Herramientas web que hacen una sola cosa, y la hacen bien.',
     'site.intro':
       'Herramientas online gratis que hacen una sola cosa bien. Sin registro, sin subir nada, sin rastreo: todo funciona en tu navegador.',
-    'nav.generators': 'Generadores',
-    'nav.image': 'Herramientas de imagen',
     'nav.allTools': 'Todas las herramientas',
+    'tab.all': 'Todas',
+    'tab.generators': 'Generadores',
+    'tab.image': 'Imagen',
+    'tab.filterAria': 'Filtrar herramientas por categoría',
     'home.heroTitle': 'Herramientas web que simplemente funcionan',
     'home.heroSubtitle':
       'Sin registro. Sin subir nada. Sin rastreo. Entrás, la usás y listo: todo corre en tu navegador.',

@@ -144,25 +144,10 @@ p {
 }
 .header-nav a {
   color: var(--text-soft);
-  position: relative;
-  transition: color 0.15s;
 }
 .header-nav a:hover {
   color: var(--text);
   text-decoration: none;
-}
-.header-nav a.active {
-  color: var(--accent);
-}
-.header-nav a.active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 2px;
-  border-radius: 2px;
-  background: var(--accent);
 }
 
 /* ── Language switcher ────────────────────────────────── */
@@ -184,6 +169,67 @@ p {
 }
 .lang-switch a:hover {
   text-decoration: none;
+}
+
+/* ── Category filter (segmented control) ──────────────── */
+.catfilter {
+  display: flex;
+  gap: 4px;
+  max-width: 460px;
+  margin: 22px 0 10px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--bg-soft);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.catfilter::-webkit-scrollbar {
+  display: none;
+}
+.seg {
+  flex: 1;
+  min-height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+.seg:hover {
+  color: var(--text);
+}
+.seg.is-active,
+.seg.is-active:hover {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.seg:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+@media (prefers-reduced-motion: reduce) {
+  .seg {
+    transition: none;
+  }
+}
+
+/* Filtering — only active once JS sets a non-"all" selection; default shows all.
+   The visible category keeps its <h2> so the heading outline stays h1 → h2 → h3
+   (hiding it would skip a level and fail heading-order for screen readers). */
+[data-filter="generators"] .cat-section[data-cat="image"],
+[data-filter="image"] .cat-section[data-cat="generators"] {
+  display: none;
+}
+/* Consistent spacing in every filter state (not :first-child — that targets the
+   hidden generators section when filtering to image-only). */
+[data-filter-root] .cat-section .section-title {
+  margin-top: 32px;
 }
 
 /* ── Layout regions ───────────────────────────────────── */
