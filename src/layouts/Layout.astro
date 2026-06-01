@@ -21,6 +21,7 @@ const { title, description, keywords, locale, path, kind, jsonLd } = Astro.props
 const t = useTranslations(locale);
 const alternates = alternatesFor(kind);
 const copiedLabel = t('common.copied');
+const errorLabel = t('common.error');
 ---
 
 <!doctype html>
@@ -50,7 +51,7 @@ const copiedLabel = t('common.copied');
       )
     }
   </head>
-  <body data-copied={copiedLabel}>
+  <body data-copied={copiedLabel} data-error={errorLabel}>
     <Header locale={locale} alternates={alternates} />
     <main>
       <div class="container">

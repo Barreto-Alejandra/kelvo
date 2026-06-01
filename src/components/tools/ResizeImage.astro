@@ -22,17 +22,17 @@ const t = useTranslations(locale);
 
   <div id="rz-work" class="hidden">
     <div style="text-align:center;margin-bottom:18px">
-      <img id="rz-preview" class="preview-img" alt="" />
+      <img id="rz-preview" class="preview-img" alt={t('common.imagePreview')} />
     </div>
 
     <div class="row" style="margin-bottom:12px">
       <div style="flex:1;min-width:120px">
         <label for="rz-w">{L.width}</label>
-        <input type="number" id="rz-w" min="1" step="1" />
+        <input type="number" id="rz-w" min="1" max="10000" step="1" />
       </div>
       <div style="flex:1;min-width:120px">
         <label for="rz-h">{L.height}</label>
-        <input type="number" id="rz-h" min="1" step="1" />
+        <input type="number" id="rz-h" min="1" max="10000" step="1" />
       </div>
       <div style="min-width:150px">
         <label for="rz-fmt">{L.outputFormat}</label>
@@ -101,17 +101,27 @@ const t = useTranslations(locale);
     return fmt.value;
   }
 
-  document.getElementById('rz-dl')!.addEventListener('click', async () => {
+  const dlBtn = document.getElementById('rz-dl') as HTMLButtonElement;
+  dlBtn.addEventListener('click', async () => {
     if (!current) return;
     const w = Math.max(1, parseInt(wEl.value, 10) || 1);
     const h = Math.max(1, parseInt(hEl.value, 10) || 1);
     const type = targetType();
     const bg = type === 'image/jpeg' ? '#ffffff' : undefined;
-    const canvas = renderCanvas(current.img, w, h, bg);
-    const blob = await canvasToBlob(canvas, type, 0.92);
-    const url = URL.createObjectURL(blob);
-    triggerDownload(url, `${baseName(current.file.name)}-${w}x${h}.${EXT[type]}`);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    let url = '';
+    dlBtn.disabled = true;
+    try {
+      const canvas = renderCanvas(current.img, w, h, bg);
+      const blob = await canvasToBlob(canvas, type, 0.92);
+      url = URL.createObjectURL(blob);
+      triggerDownload(url, `${baseName(current.file.name)}-${w}x${h}.${EXT[type]}`);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      if (url) URL.revokeObjectURL(url);
+      (window as any).showToast?.(document.body.dataset.error || '');
+    } finally {
+      dlBtn.disabled = false;
+    }
   });
 
   document.getElementById('rz-reset')!.addEventListener('click', () => {

@@ -34,7 +34,7 @@ const indexes = [0, 1, 2, 3, 4];
         <div class="swatch" data-i={i}>
           <div class="color" role="button" tabindex="0" title={L.copyHint} />
           <div class="bar">
-            <span class="hex" data-copy="" />
+            <span class="hex" />
             <button class="lockbtn" type="button" aria-label={L.lock} />
           </div>
         </div>
@@ -99,7 +99,6 @@ const indexes = [0, 1, 2, 3, 4];
         sw.querySelector('.color').style.background = c.hex;
         const hexEl = sw.querySelector('.hex');
         hexEl.textContent = c.hex.toUpperCase();
-        hexEl.dataset.copy = c.hex.toUpperCase();
         const btn = sw.querySelector('.lockbtn');
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${c.locked ? LOCK_CLOSED : LOCK_OPEN}</svg>`;
         btn.setAttribute('aria-label', c.locked ? L.unlock : L.lock);

@@ -16,7 +16,7 @@ const t = useTranslations(locale);
   <div class="qr-layout">
     <div class="qr-controls">
       <!-- ── Content ─────────────────────────────── -->
-      <h3 class="qr-h">{L.contentSection}</h3>
+      <h2 class="qr-h">{L.contentSection}</h2>
       <div class="field">
         <label for="qr-type">{L.contentType}</label>
         <select id="qr-type">
@@ -91,7 +91,7 @@ const t = useTranslations(locale);
       </div>
 
       <!-- ── Style ───────────────────────────────── -->
-      <h3 class="qr-h">{L.styleSection}</h3>
+      <h2 class="qr-h">{L.styleSection}</h2>
       <div class="field">
         <label>{L.presets}</label>
         <div class="qr-presets">
@@ -162,7 +162,7 @@ const t = useTranslations(locale);
       <div class="row" style="margin-top:8px">
         <div style="flex:1;min-width:150px">
           <label for="qr-ec">{L.errorCorrection}</label>
-          <select id="qr-ec">
+          <select id="qr-ec" aria-describedby="qr-ec-hint">
             <option value="L">{L.ecLow}</option>
             <option value="M" selected>{L.ecMedium}</option>
             <option value="Q">{L.ecQuartile}</option>
@@ -467,7 +467,7 @@ const t = useTranslations(locale);
     try {
       await new QRCodeStyling(opts).download({ name: 'kelvo-qr', extension: ext });
     } catch {
-      /* ignore */
+      (window as any).showToast?.(document.body.dataset.error || '');
     }
   }
 
@@ -490,7 +490,7 @@ const t = useTranslations(locale);
       pdf.addImage(dataUrl, 'PNG', (pageW - s) / 2, 40, s, s);
       pdf.save('kelvo-qr.pdf');
     } catch {
-      /* ignore */
+      (window as any).showToast?.(document.body.dataset.error || '');
     }
   }
 

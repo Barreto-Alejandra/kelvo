@@ -22,7 +22,7 @@ const t = useTranslations(locale);
 
   <div id="cz-work" class="hidden">
     <div style="text-align:center;margin-bottom:18px">
-      <img id="cz-preview" class="preview-img" alt="" />
+      <img id="cz-preview" class="preview-img" alt={t('common.imagePreview')} />
     </div>
 
     <div class="row" style="margin-bottom:16px">
@@ -80,15 +80,26 @@ const t = useTranslations(locale);
 
   async function recompress() {
     if (!current) return;
-    const canvas = renderCanvas(current.img, current.img.naturalWidth, current.img.naturalHeight, '#ffffff');
-    const blob = await canvasToBlob(canvas, fmt.value, parseInt(q.value, 10) / 100);
-    if (outUrl) URL.revokeObjectURL(outUrl);
-    outBlob = blob;
-    outUrl = URL.createObjectURL(blob);
-    compEl.textContent = formatBytes(blob.size);
-    const pct = Math.round((1 - blob.size / current.file.size) * 100);
-    savedEl.textContent = pct > 0 ? `${pct}%` : '0%';
-    savedEl.style.color = pct > 0 ? 'var(--ok)' : 'var(--warn)';
+    try {
+      const canvas = renderCanvas(current.img, current.img.naturalWidth, current.img.naturalHeight, '#ffffff');
+      const blob = await canvasToBlob(canvas, fmt.value, parseInt(q.value, 10) / 100);
+      if (outUrl) URL.revokeObjectURL(outUrl);
+      outBlob = blob;
+      outUrl = URL.createObjectURL(blob);
+      compEl.textContent = formatBytes(blob.size);
+      const pct = Math.round((1 - blob.size / current.file.size) * 100);
+      savedEl.textContent = pct > 0 ? `${pct}%` : '0%';
+      savedEl.style.color = pct > 0 ? 'var(--ok)' : 'var(--warn)';
+    } catch {
+      (window as any).showToast?.(document.body.dataset.error || '');
+    }
+  }
+
+  // Debounce while dragging the quality slider so we don't re-encode on every pixel.
+  let recompressTimer: number | undefined;
+  function recompressSoon() {
+    window.clearTimeout(recompressTimer);
+    recompressTimer = window.setTimeout(recompress, 130);
   }
 
   setupDropzone(drop, input, (data) => {
@@ -100,7 +111,7 @@ const t = useTranslations(locale);
     recompress();
   });
 
-  q.addEventListener('input', () => { qv.textContent = q.value; recompress(); });
+  q.addEventListener('input', () => { qv.textContent = q.value; recompressSoon(); });
   fmt.addEventListener('change', recompress);
 
   document.getElementById('cz-dl')!.addEventListener('click', () => {

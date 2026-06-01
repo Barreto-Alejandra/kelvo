@@ -22,7 +22,7 @@ const t = useTranslations(locale);
 
   <div id="cv-work" class="hidden">
     <div style="text-align:center;margin-bottom:18px">
-      <img id="cv-preview" class="preview-img" alt="" />
+      <img id="cv-preview" class="preview-img" alt={t('common.imagePreview')} />
     </div>
 
     <div class="row" style="margin-bottom:16px">
@@ -84,15 +84,25 @@ const t = useTranslations(locale);
   fmt.addEventListener('change', syncQuality);
   q.addEventListener('input', () => (qv.textContent = q.value));
 
-  document.getElementById('cv-dl')!.addEventListener('click', async () => {
+  const cvDl = document.getElementById('cv-dl') as HTMLButtonElement;
+  cvDl.addEventListener('click', async () => {
     if (!current) return;
     const type = fmt.value;
     const bg = type === 'image/jpeg' ? '#ffffff' : undefined;
-    const canvas = renderCanvas(current.img, current.img.naturalWidth, current.img.naturalHeight, bg);
-    const blob = await canvasToBlob(canvas, type, parseInt(q.value, 10) / 100);
-    const url = URL.createObjectURL(blob);
-    triggerDownload(url, `${baseName(current.file.name)}.${EXT[type]}`);
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    let url = '';
+    cvDl.disabled = true;
+    try {
+      const canvas = renderCanvas(current.img, current.img.naturalWidth, current.img.naturalHeight, bg);
+      const blob = await canvasToBlob(canvas, type, parseInt(q.value, 10) / 100);
+      url = URL.createObjectURL(blob);
+      triggerDownload(url, `${baseName(current.file.name)}-converted.${EXT[type]}`);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } catch {
+      if (url) URL.revokeObjectURL(url);
+      (window as any).showToast?.(document.body.dataset.error || '');
+    } finally {
+      cvDl.disabled = false;
+    }
   });
 
   document.getElementById('cv-reset')!.addEventListener('click', () => {
