@@ -48,6 +48,15 @@ html {
   scroll-behavior: smooth;
   /* Offset anchor jumps so section titles aren't hidden under the sticky header. */
   scroll-padding-top: 76px;
+  /* Always reserve the scrollbar gutter so content doesn't jump sideways when a
+     short (filtered) page hides the scrollbar and a long one shows it. */
+  scrollbar-gutter: stable;
+}
+/* Fallback for browsers without scrollbar-gutter: force a persistent scrollbar. */
+@supports not (scrollbar-gutter: stable) {
+  html {
+    overflow-y: scroll;
+  }
 }
 @media (prefers-reduced-motion: reduce) {
   html {
