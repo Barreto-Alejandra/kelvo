@@ -170,14 +170,19 @@ const t = useTranslations(locale);
 
     <!-- ── Preview + downloads ─────────────────────── -->
     <div class="qr-preview-wrap">
-      <div id="qr-preview" class="qr-preview"></div>
-      <p class="muted" id="qr-empty"></p>
-      <div class="row" style="justify-content:center;margin-top:14px">
-        <button class="btn" id="qr-png" type="button">{L.downloadPng}</button>
+      <div class="qr-stage">
+        <div id="qr-preview" class="qr-preview"></div>
+        <div id="qr-placeholder" class="qr-placeholder">
+          <svg class="qr-ph-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" set:html={tool.icon} />
+          <p class="muted" id="qr-empty"></p>
+        </div>
+      </div>
+      <div class="qr-actions">
+        <button class="btn primary-dl" id="qr-png" type="button">{L.downloadPng}</button>
         <button class="btn secondary" id="qr-svg" type="button">{L.downloadSvg}</button>
         <button class="btn secondary" id="qr-jpg" type="button">{L.downloadJpg}</button>
       </div>
-      <div class="privacy-note" style="justify-content:center;margin-top:10px">
+      <div class="privacy-note" style="justify-content:center;margin-top:12px">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
         {t('common.processedLocally')}
       </div>
@@ -213,26 +218,65 @@ const t = useTranslations(locale);
   .qr-h:first-child { margin-top: 0; }
   .qr-controls .field { margin-bottom: 12px; }
   .qr-preview-wrap { text-align: center; }
+  .qr-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 280px;
+  }
   .qr-preview {
-    display: inline-block;
-    padding: 14px;
+    display: none;
+    padding: 16px;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg-soft);
+    border-radius: 18px;
+    background: var(--bg-elev);
+    box-shadow: var(--shadow);
+    line-height: 0;
+  }
+  .qr-preview.is-transparent {
+    background-color: #fff;
     background-image:
-      linear-gradient(45deg, var(--border) 25%, transparent 25%),
-      linear-gradient(-45deg, var(--border) 25%, transparent 25%),
-      linear-gradient(45deg, transparent 75%, var(--border) 75%),
-      linear-gradient(-45deg, transparent 75%, var(--border) 75%);
+      linear-gradient(45deg, #e5e7eb 25%, transparent 25%),
+      linear-gradient(-45deg, #e5e7eb 25%, transparent 25%),
+      linear-gradient(45deg, transparent 75%, #e5e7eb 75%),
+      linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
     background-size: 16px 16px;
     background-position: 0 0, 0 8px, 8px -8px, -8px 0;
-    line-height: 0;
   }
   .qr-preview :global(canvas),
   .qr-preview :global(svg) {
     max-width: 100%;
     height: auto;
+    border-radius: 6px;
+    display: block;
   }
+  .qr-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 250px;
+    height: 250px;
+    padding: 22px;
+    text-align: center;
+    border: 2px dashed var(--border);
+    border-radius: 18px;
+    color: var(--text-faint);
+  }
+  .qr-ph-icon {
+    width: 54px;
+    height: 54px;
+    opacity: 0.4;
+  }
+  .qr-placeholder p { margin: 0; font-size: 0.88rem; }
+  .qr-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .qr-actions .primary-dl { grid-column: 1 / -1; }
 </style>
 
 <script>
@@ -263,6 +307,7 @@ const t = useTranslations(locale);
   const logoSizeEl = $('qr-logo-size') as HTMLInputElement;
   const logoSizeVal = $('qr-logo-size-val');
   const preview = $('qr-preview');
+  const placeholder = $('qr-placeholder');
   const emptyEl = $('qr-empty');
   const dlBtns = ['qr-png', 'qr-svg', 'qr-jpg'].map((id) => $(id) as HTMLButtonElement);
 
@@ -356,7 +401,7 @@ const t = useTranslations(locale);
       b.style.opacity = on ? '1' : '0.5';
     });
     preview.style.display = on ? 'inline-block' : 'none';
-    emptyEl.textContent = on ? '' : emptyMsg;
+    placeholder.style.display = on ? 'none' : 'flex';
   }
 
   function render() {
@@ -407,6 +452,11 @@ const t = useTranslations(locale);
     render();
   });
 
+  // Transparent background: show the checkerboard only when enabled.
+  transparentEl.addEventListener('change', () => {
+    preview.classList.toggle('is-transparent', transparentEl.checked);
+  });
+
   // Size + logo size labels
   sizeEl.addEventListener('input', () => { sizeVal.textContent = sizeEl.value; renderSoon(); });
   logoSizeEl.addEventListener('input', () => { logoSizeVal.textContent = logoSizeEl.value; renderSoon(); });
@@ -455,5 +505,6 @@ const t = useTranslations(locale);
   $('qr-svg').addEventListener('click', () => downloadAs('svg'));
   $('qr-jpg').addEventListener('click', () => downloadAs('jpeg'));
 
+  emptyEl.textContent = emptyMsg;
   render();
 </script>
