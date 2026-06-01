@@ -1,0 +1,19 @@
+{
+  "name": "kelvo",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Single-purpose web tools that work 100% in the browser. Fast, no signup, no tracking.",
+  "scripts": {
+    "dev": "astro dev",
+    "start": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@astrojs/sitemap": "^3.2.0",
+    "qrcode": "^1.5.4"
+  }
+}

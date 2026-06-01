@@ -1,0 +1,20 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { toolPath } from '@/i18n/utils';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const c = tool.content[locale];
+---
+
+<a class="tool-card" href={toolPath(locale, tool)}>
+  <span class="ico" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={tool.icon} />
+  </span>
+  <h3>{c.name}</h3>
+  <p>{c.description}</p>
+</a>

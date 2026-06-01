@@ -1,0 +1,106 @@
+---
+import { SITE, type Locale } from '@/config';
+import { useTranslations } from '@/i18n/ui';
+import { alternatesFor, withBase } from '@/i18n/utils';
+import SEO from '@/components/SEO.astro';
+import Header from '@/components/Header.astro';
+import Footer from '@/components/Footer.astro';
+import '@/styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  keywords?: string;
+  locale: Locale;
+  path: string;
+  kind: 'home' | string;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description, keywords, locale, path, kind, jsonLd } = Astro.props;
+const t = useTranslations(locale);
+const alternates = alternatesFor(kind);
+const copiedLabel = t('common.copied');
+---
+
+<!doctype html>
+<html lang={locale}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="icon" type="image/svg+xml" href={withBase('/favicon.svg')} />
+    <meta name="theme-color" content="#4f46e5" />
+    <meta name="generator" content={Astro.generator} />
+    <SEO
+      title={title}
+      description={description}
+      keywords={keywords}
+      locale={locale}
+      path={path}
+      kind={kind}
+      jsonLd={jsonLd}
+    />
+    {
+      SITE.adsenseClient && (
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${SITE.adsenseClient}`}
+          crossorigin="anonymous"
+        />
+      )
+    }
+  </head>
+  <body data-copied={copiedLabel}>
+    <Header locale={locale} alternates={alternates} />
+    <main>
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+    <Footer locale={locale} />
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+    <script>
+      // Shared helpers available to every tool island.
+      const copied = document.body.dataset.copied || 'Copied!';
+      const toastEl = document.getElementById('toast');
+      let toastTimer: number | undefined;
+
+      function showToast(msg: string) {
+        if (!toastEl) return;
+        toastEl.textContent = msg;
+        toastEl.classList.add('show');
+        window.clearTimeout(toastTimer);
+        toastTimer = window.setTimeout(() => toastEl.classList.remove('show'), 1600);
+      }
+
+      async function copyText(text: string, msg?: string) {
+        try {
+          await navigator.clipboard.writeText(text);
+        } catch {
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+        }
+        showToast(msg || copied);
+      }
+
+      // Expose to inline tool scripts.
+      (window as any).copyText = copyText;
+      (window as any).showToast = showToast;
+
+      // Delegated copy for any [data-copy] element.
+      document.addEventListener('click', (e) => {
+        const el = (e.target as HTMLElement).closest('[data-copy]') as HTMLElement | null;
+        if (!el) return;
+        const val = el.getAttribute('data-copy') || el.textContent || '';
+        if (val.trim()) copyText(val.trim());
+      });
+    </script>
+  </body>
+</html>

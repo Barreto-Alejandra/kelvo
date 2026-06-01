@@ -1,0 +1,124 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const L = tool.content[locale].ui;
+const t = useTranslations(locale);
+---
+
+<div class="panel">
+  <div class="dropzone" id="rz-drop" role="button" tabindex="0" aria-label={t('common.dropHere')}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    <p><strong>{t('common.dropHere')}</strong></p>
+    <p class="muted">{t('common.dropHint')}</p>
+    <input type="file" id="rz-input" accept="image/*" class="hidden" />
+  </div>
+
+  <div id="rz-work" class="hidden">
+    <div style="text-align:center;margin-bottom:18px">
+      <img id="rz-preview" class="preview-img" alt="" />
+    </div>
+
+    <div class="row" style="margin-bottom:12px">
+      <div style="flex:1;min-width:120px">
+        <label for="rz-w">{L.width}</label>
+        <input type="number" id="rz-w" min="1" step="1" />
+      </div>
+      <div style="flex:1;min-width:120px">
+        <label for="rz-h">{L.height}</label>
+        <input type="number" id="rz-h" min="1" step="1" />
+      </div>
+      <div style="min-width:150px">
+        <label for="rz-fmt">{L.outputFormat}</label>
+        <select id="rz-fmt">
+          <option value="keep">{L.keepOriginal}</option>
+          <option value="image/png">PNG</option>
+          <option value="image/jpeg">JPG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+    </div>
+
+    <label class="check" style="margin-bottom:18px">
+      <input type="checkbox" id="rz-lock" checked /> {L.lockRatio}
+    </label>
+
+    <div class="row">
+      <button class="btn" id="rz-dl" type="button">{t('common.download')}</button>
+      <button class="btn secondary" id="rz-reset" type="button">{L.chooseAnother}</button>
+    </div>
+  </div>
+
+  <div class="privacy-note" style="margin-top:14px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    {t('common.processedLocally')}
+  </div>
+</div>
+
+<script>
+  import {
+    setupDropzone, renderCanvas, canvasToBlob, triggerDownload,
+    baseName, EXT, type LoadedImage,
+  } from '@/scripts/image-utils';
+
+  const drop = document.getElementById('rz-drop') as HTMLElement;
+  const input = document.getElementById('rz-input') as HTMLInputElement;
+  const work = document.getElementById('rz-work') as HTMLElement;
+  const preview = document.getElementById('rz-preview') as HTMLImageElement;
+  const wEl = document.getElementById('rz-w') as HTMLInputElement;
+  const hEl = document.getElementById('rz-h') as HTMLInputElement;
+  const lock = document.getElementById('rz-lock') as HTMLInputElement;
+  const fmt = document.getElementById('rz-fmt') as HTMLSelectElement;
+
+  let current: LoadedImage | null = null;
+  let ratio = 1;
+
+  setupDropzone(drop, input, (data) => {
+    current = data;
+    ratio = data.img.naturalWidth / data.img.naturalHeight;
+    wEl.value = String(data.img.naturalWidth);
+    hEl.value = String(data.img.naturalHeight);
+    preview.src = data.url;
+    drop.classList.add('hidden');
+    work.classList.remove('hidden');
+  });
+
+  wEl.addEventListener('input', () => {
+    if (lock.checked && wEl.value) hEl.value = String(Math.max(1, Math.round(parseInt(wEl.value, 10) / ratio)));
+  });
+  hEl.addEventListener('input', () => {
+    if (lock.checked && hEl.value) wEl.value = String(Math.max(1, Math.round(parseInt(hEl.value, 10) * ratio)));
+  });
+
+  function targetType(): string {
+    if (fmt.value === 'keep') return EXT[current!.file.type] ? current!.file.type : 'image/png';
+    return fmt.value;
+  }
+
+  document.getElementById('rz-dl')!.addEventListener('click', async () => {
+    if (!current) return;
+    const w = Math.max(1, parseInt(wEl.value, 10) || 1);
+    const h = Math.max(1, parseInt(hEl.value, 10) || 1);
+    const type = targetType();
+    const bg = type === 'image/jpeg' ? '#ffffff' : undefined;
+    const canvas = renderCanvas(current.img, w, h, bg);
+    const blob = await canvasToBlob(canvas, type, 0.92);
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, `${baseName(current.file.name)}-${w}x${h}.${EXT[type]}`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  document.getElementById('rz-reset')!.addEventListener('click', () => {
+    if (current) URL.revokeObjectURL(current.url);
+    current = null;
+    input.value = '';
+    work.classList.add('hidden');
+    drop.classList.remove('hidden');
+  });
+</script>

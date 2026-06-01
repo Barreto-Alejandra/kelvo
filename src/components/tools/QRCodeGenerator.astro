@@ -1,0 +1,127 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const L = tool.content[locale].ui;
+const t = useTranslations(locale);
+---
+
+<div class="panel" id="qr-root" data-empty={L.empty}>
+  <div class="field">
+    <label for="qr-text">{L.inputLabel}</label>
+    <input type="text" id="qr-text" placeholder={L.placeholder} value="https://" autocomplete="off" />
+  </div>
+
+  <div class="row">
+    <div>
+      <label for="qr-fg">{L.fg}</label>
+      <input type="color" id="qr-fg" value="#111827" />
+    </div>
+    <div>
+      <label for="qr-bg">{L.bg}</label>
+      <input type="color" id="qr-bg" value="#ffffff" />
+    </div>
+    <div style="flex:1;min-width:160px">
+      <label for="qr-size">{L.size}: <span id="qr-size-val" style="color:var(--accent)">320</span> px</label>
+      <input type="range" id="qr-size" min="160" max="640" step="8" value="320" />
+    </div>
+  </div>
+
+  <div style="text-align:center;margin:22px 0">
+    <canvas id="qr-canvas" style="max-width:100%;border-radius:var(--radius-sm)"></canvas>
+    <p class="muted" id="qr-empty"></p>
+  </div>
+
+  <div class="row">
+    <button class="btn" id="qr-png" type="button">{L.downloadPng}</button>
+    <button class="btn secondary" id="qr-svg" type="button">{L.downloadSvg}</button>
+  </div>
+  <div class="privacy-note" style="margin-top:12px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    {t('common.processedLocally')}
+  </div>
+</div>
+
+<script>
+  import QRCode from 'qrcode';
+
+  const root = document.getElementById('qr-root') as HTMLElement;
+  const emptyMsg = root.dataset.empty || '';
+  const text = document.getElementById('qr-text') as HTMLInputElement;
+  const fg = document.getElementById('qr-fg') as HTMLInputElement;
+  const bg = document.getElementById('qr-bg') as HTMLInputElement;
+  const size = document.getElementById('qr-size') as HTMLInputElement;
+  const sizeVal = document.getElementById('qr-size-val') as HTMLElement;
+  const canvas = document.getElementById('qr-canvas') as HTMLCanvasElement;
+  const emptyEl = document.getElementById('qr-empty') as HTMLElement;
+  const pngBtn = document.getElementById('qr-png') as HTMLButtonElement;
+  const svgBtn = document.getElementById('qr-svg') as HTMLButtonElement;
+
+  function opts() {
+    return {
+      width: parseInt(size.value, 10),
+      margin: 2,
+      color: { dark: fg.value, light: bg.value },
+      errorCorrectionLevel: 'M' as const,
+    };
+  }
+
+  function setDownloadable(on: boolean) {
+    pngBtn.disabled = !on;
+    svgBtn.disabled = !on;
+    pngBtn.style.opacity = svgBtn.style.opacity = on ? '1' : '0.5';
+    canvas.style.display = on ? 'inline-block' : 'none';
+    emptyEl.textContent = on ? '' : emptyMsg;
+  }
+
+  async function render() {
+    const value = text.value.trim();
+    if (!value) {
+      setDownloadable(false);
+      return;
+    }
+    try {
+      await QRCode.toCanvas(canvas, value, opts());
+      setDownloadable(true);
+    } catch {
+      setDownloadable(false);
+    }
+  }
+
+  function download(href: string, name: string) {
+    const a = document.createElement('a');
+    a.href = href;
+    a.download = name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  pngBtn.addEventListener('click', () => {
+    if (!text.value.trim()) return;
+    download(canvas.toDataURL('image/png'), 'qr-code.png');
+  });
+
+  svgBtn.addEventListener('click', async () => {
+    const value = text.value.trim();
+    if (!value) return;
+    const svg = await QRCode.toString(value, { ...opts(), type: 'svg' });
+    const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+    download(url, 'qr-code.svg');
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  [text, fg, bg].forEach((el) => el.addEventListener('input', render));
+  size.addEventListener('input', () => {
+    sizeVal.textContent = size.value;
+    render();
+  });
+
+  render();
+</script>

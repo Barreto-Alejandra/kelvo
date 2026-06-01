@@ -1,0 +1,19 @@
+---
+import type { Locale } from '@/config';
+import { SITE } from '@/config';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  locale: Locale;
+}
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const year = 2026;
+---
+
+<footer class="site-footer">
+  <div class="container inner">
+    <span>© {year} {SITE.name} · {t('footer.privacy')}</span>
+    <span>{t('footer.madeWith')}</span>
+  </div>
+</footer>

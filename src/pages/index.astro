@@ -1,0 +1,29 @@
+---
+import { SITE, ORIGIN } from '@/config';
+import { homePath } from '@/i18n/utils';
+
+const def = SITE.defaultLocale;
+const defPath = homePath(def);
+// Map each locale to its (base-aware) home path for the client-side picker.
+const paths = Object.fromEntries(SITE.locales.map((l) => [l, homePath(l)]));
+---
+
+<!doctype html>
+<html lang={def}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{SITE.name}</title>
+    <link rel="canonical" href={ORIGIN + defPath} />
+    {SITE.locales.map((l) => <link rel="alternate" hreflang={l} href={ORIGIN + homePath(l)} />)}
+    <link rel="alternate" hreflang="x-default" href={ORIGIN + defPath} />
+    <meta http-equiv="refresh" content={`0; url=${defPath}`} />
+    <script is:inline define:vars={{ paths, def }}>
+      const want = (navigator.language || def).slice(0, 2).toLowerCase();
+      location.replace(paths[want] || paths[def]);
+    </script>
+  </head>
+  <body>
+    <p>Redirecting… <a href={defPath}>Continue</a></p>
+  </body>
+</html>

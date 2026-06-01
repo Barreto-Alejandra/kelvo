@@ -1,0 +1,23 @@
+---
+import type { Locale } from '@/config';
+
+interface Props {
+  current: Locale;
+  alternates: { locale: Locale; path: string }[];
+}
+const { current, alternates } = Astro.props;
+---
+
+<nav class="lang-switch" aria-label="Language">
+  {
+    alternates.map((alt) => (
+      <a
+        href={alt.path}
+        hreflang={alt.locale}
+        aria-current={alt.locale === current ? 'true' : 'false'}
+      >
+        {alt.locale.toUpperCase()}
+      </a>
+    ))
+  }
+</nav>

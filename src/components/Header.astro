@@ -1,0 +1,29 @@
+---
+import type { Locale } from '@/config';
+import { SITE } from '@/config';
+import { homePath } from '@/i18n/utils';
+import { useTranslations } from '@/i18n/ui';
+import LanguageSwitcher from './LanguageSwitcher.astro';
+
+interface Props {
+  locale: Locale;
+  alternates: { locale: Locale; path: string }[];
+}
+const { locale, alternates } = Astro.props;
+const t = useTranslations(locale);
+const home = homePath(locale);
+---
+
+<header class="site-header">
+  <div class="container inner">
+    <a class="brand" href={home}>
+      <span class="logo" aria-hidden="true">⚡</span>
+      {SITE.name}
+    </a>
+    <nav class="header-nav" aria-label="Primary">
+      <a href={`${home}#generators`}>{t('nav.generators')}</a>
+      <a href={`${home}#image`}>{t('nav.image')}</a>
+      <LanguageSwitcher current={locale} alternates={alternates} />
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,105 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const L = tool.content[locale].ui;
+const t = useTranslations(locale);
+---
+
+<div class="panel">
+  <div class="dropzone" id="cv-drop" role="button" tabindex="0" aria-label={t('common.dropHere')}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    <p><strong>{t('common.dropHere')}</strong></p>
+    <p class="muted">{t('common.dropHint')}</p>
+    <input type="file" id="cv-input" accept="image/*" class="hidden" />
+  </div>
+
+  <div id="cv-work" class="hidden">
+    <div style="text-align:center;margin-bottom:18px">
+      <img id="cv-preview" class="preview-img" alt="" />
+    </div>
+
+    <div class="row" style="margin-bottom:16px">
+      <div style="min-width:150px">
+        <label for="cv-fmt">{L.convertTo}</label>
+        <select id="cv-fmt">
+          <option value="image/png">PNG</option>
+          <option value="image/jpeg">JPG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:180px" id="cv-qwrap">
+        <label for="cv-q">{L.quality}: <span id="cv-qv" style="color:var(--accent)">92</span>%</label>
+        <input type="range" id="cv-q" min="10" max="100" step="1" value="92" />
+      </div>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="cv-dl" type="button">{t('common.download')}</button>
+      <button class="btn secondary" id="cv-reset" type="button">{L.chooseAnother}</button>
+    </div>
+  </div>
+
+  <div class="privacy-note" style="margin-top:14px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    {t('common.processedLocally')}
+  </div>
+</div>
+
+<script>
+  import {
+    setupDropzone, renderCanvas, canvasToBlob, triggerDownload,
+    baseName, EXT, type LoadedImage,
+  } from '@/scripts/image-utils';
+
+  const drop = document.getElementById('cv-drop') as HTMLElement;
+  const input = document.getElementById('cv-input') as HTMLInputElement;
+  const work = document.getElementById('cv-work') as HTMLElement;
+  const preview = document.getElementById('cv-preview') as HTMLImageElement;
+  const fmt = document.getElementById('cv-fmt') as HTMLSelectElement;
+  const q = document.getElementById('cv-q') as HTMLInputElement;
+  const qv = document.getElementById('cv-qv') as HTMLElement;
+  const qwrap = document.getElementById('cv-qwrap') as HTMLElement;
+
+  let current: LoadedImage | null = null;
+
+  function syncQuality() {
+    qwrap.style.display = fmt.value === 'image/png' ? 'none' : '';
+  }
+
+  setupDropzone(drop, input, (data) => {
+    current = data;
+    preview.src = data.url;
+    drop.classList.add('hidden');
+    work.classList.remove('hidden');
+    syncQuality();
+  });
+
+  fmt.addEventListener('change', syncQuality);
+  q.addEventListener('input', () => (qv.textContent = q.value));
+
+  document.getElementById('cv-dl')!.addEventListener('click', async () => {
+    if (!current) return;
+    const type = fmt.value;
+    const bg = type === 'image/jpeg' ? '#ffffff' : undefined;
+    const canvas = renderCanvas(current.img, current.img.naturalWidth, current.img.naturalHeight, bg);
+    const blob = await canvasToBlob(canvas, type, parseInt(q.value, 10) / 100);
+    const url = URL.createObjectURL(blob);
+    triggerDownload(url, `${baseName(current.file.name)}.${EXT[type]}`);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+
+  document.getElementById('cv-reset')!.addEventListener('click', () => {
+    if (current) URL.revokeObjectURL(current.url);
+    current = null;
+    input.value = '';
+    work.classList.add('hidden');
+    drop.classList.remove('hidden');
+  });
+</script>

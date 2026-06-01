@@ -1,0 +1,114 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const L = tool.content[locale].ui;
+const t = useTranslations(locale);
+---
+
+<div class="panel">
+  <div class="row" style="margin-bottom:16px">
+    <div style="min-width:170px">
+      <label for="un-style">{L.style}</label>
+      <select id="un-style">
+        <option value="fun">{L.fun}</option>
+        <option value="gamer">{L.gamer}</option>
+        <option value="professional">{L.professional}</option>
+        <option value="aesthetic">{L.aesthetic}</option>
+      </select>
+    </div>
+    <label class="check" style="align-self:flex-end;padding-bottom:9px">
+      <input type="checkbox" id="un-num" /> {L.addNumbers}
+    </label>
+    <button class="btn" id="un-gen" type="button" style="align-self:flex-end;margin-left:auto">{L.generate}</button>
+  </div>
+
+  <div class="name-list" id="un-list"></div>
+  <div class="privacy-note" style="margin-top:14px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    {t('common.processedLocally')}
+  </div>
+</div>
+
+<script define:vars={{ locale }}>
+  (() => {
+    const WORDS = {
+      en: {
+        adj: ['Happy','Swift','Brave','Cosmic','Silent','Golden','Mighty','Lunar','Crimson','Frost','Shadow','Electric','Wild','Noble','Hidden','Rapid','Velvet','Stellar','Iron','Pixel'],
+        noun: ['Otter','Falcon','Wolf','Tiger','Comet','Raven','Fox','Phoenix','Panda','Dragon','Knight','Wizard','Rocket','Sparrow','Bear','Lynx','Owl','Puma','Hawk','Dolphin'],
+        soft: ['soft','lunar','velvet','dream','cloud','peach','misty','honey','opal','dusk','bloom','aura'],
+      },
+      es: {
+        adj: ['Feliz','Veloz','Bravo','Cosmico','Silente','Dorado','Fuerte','Lunar','Carmesi','Helado','Sombrio','Electrico','Salvaje','Noble','Oculto','Rapido','Estelar','Solar','Mistico','Audaz'],
+        noun: ['Nutria','Halcon','Lobo','Tigre','Cometa','Cuervo','Zorro','Fenix','Panda','Dragon','Caballero','Mago','Cohete','Gorrion','Oso','Lince','Buho','Puma','Aguila','Delfin'],
+        soft: ['suave','lunar','terciopelo','sueno','nube','durazno','niebla','miel','opalo','ocaso','flor','aura'],
+      },
+    };
+    const GAMER_PREFIX = ['x','Dark','Pro','Toxic','Ghost','Mega','Hyper','Night'];
+    const GAMER_SUFFIX = ['X','YT','TTV','GG','HD','Pro','Zz'];
+
+    const W = WORDS[locale] || WORDS.en;
+    const listEl = document.getElementById('un-list');
+    const styleEl = document.getElementById('un-style');
+    const numEl = document.getElementById('un-num');
+
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    const cap = (w) => w.charAt(0).toUpperCase() + w.slice(1);
+    const num = () => String(Math.floor(Math.random() * 900) + 10);
+
+    function makeName(style, addNum) {
+      let name;
+      switch (style) {
+        case 'gamer':
+          name = pick(GAMER_PREFIX) + cap(pick(W.noun));
+          name += addNum ? num() : (Math.random() < 0.5 ? pick(GAMER_SUFFIX) : '');
+          break;
+        case 'professional':
+          name = pick(W.adj).toLowerCase() + (Math.random() < 0.5 ? '.' : '_') + pick(W.noun).toLowerCase();
+          if (addNum) name += num();
+          break;
+        case 'aesthetic': {
+          let a = pick(W.soft), b = pick(W.soft);
+          while (b === a) b = pick(W.soft);
+          name = a + b;
+          if (addNum) name += num();
+          break;
+        }
+        default: // fun
+          name = cap(pick(W.adj)) + cap(pick(W.noun));
+          if (addNum) name += num();
+      }
+      return name;
+    }
+
+    function generate() {
+      const style = styleEl.value;
+      const addNum = numEl.checked;
+      const set = new Set();
+      let guard = 0;
+      while (set.size < 12 && guard < 200) {
+        set.add(makeName(style, addNum));
+        guard++;
+      }
+      listEl.innerHTML = '';
+      for (const n of set) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.textContent = n;
+        b.setAttribute('data-copy', n);
+        listEl.appendChild(b);
+      }
+    }
+
+    document.getElementById('un-gen').addEventListener('click', generate);
+    styleEl.addEventListener('change', generate);
+    numEl.addEventListener('change', generate);
+    generate();
+  })();
+</script>

@@ -1,0 +1,77 @@
+---
+import { SITE, ORIGIN, type Locale } from '@/config';
+import { toolsByCategory } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+import { withBase } from '@/i18n/utils';
+import Layout from '@/layouts/Layout.astro';
+import ToolCard from '@/components/ToolCard.astro';
+import AdSlot from '@/components/AdSlot.astro';
+
+export function getStaticPaths() {
+  return SITE.locales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+const { locale } = Astro.props as { locale: Locale };
+const t = useTranslations(locale);
+const generators = toolsByCategory('generators');
+const image = toolsByCategory('image');
+const path = `/${locale}`;
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE.name,
+    url: ORIGIN + withBase(path),
+    inLanguage: locale,
+    description: t('site.intro'),
+  },
+];
+---
+
+<Layout
+  title={t('site.tagline')}
+  description={t('site.intro')}
+  locale={locale}
+  path={path}
+  kind="home"
+  jsonLd={jsonLd}
+>
+  <section style="padding:18px 0 8px">
+    <h1>{t('home.heroTitle')}</h1>
+    <p class="lede">{t('home.heroSubtitle')}</p>
+    <div class="row" style="gap:8px;margin-top:14px">
+      <span class="privacy-note" style="margin:0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        {t('badge.private')}
+      </span>
+      <span class="privacy-note" style="margin:0">· {t('badge.free')}</span>
+      <span class="privacy-note" style="margin:0">· {t('badge.noUpload')}</span>
+    </div>
+  </section>
+
+  <section id="generators" aria-labelledby="gen-title">
+    <div class="section-title">
+      <h2 id="gen-title">{t('home.section.generators')}</h2>
+    </div>
+    <div class="grid">
+      {generators.map((tool) => <ToolCard tool={tool} locale={locale} />)}
+    </div>
+  </section>
+
+  <section id="image" aria-labelledby="img-title">
+    <div class="section-title">
+      <h2 id="img-title">{t('home.section.image')}</h2>
+    </div>
+    <div class="grid">
+      {image.map((tool) => <ToolCard tool={tool} locale={locale} />)}
+    </div>
+  </section>
+
+  <AdSlot locale={locale} />
+
+  <section class="panel" style="margin-top:30px">
+    <h2>{t('home.privacyTitle')}</h2>
+    <p class="muted" style="margin:0">{t('home.privacyBody')}</p>
+  </section>
+</Layout>

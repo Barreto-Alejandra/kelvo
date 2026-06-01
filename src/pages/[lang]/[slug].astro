@@ -1,0 +1,95 @@
+---
+import { SITE, ORIGIN, type Locale } from '@/config';
+import { tools, getTool } from '@/i18n/tools';
+import { withBase } from '@/i18n/utils';
+import Layout from '@/layouts/Layout.astro';
+import ToolShell from '@/components/ToolShell.astro';
+
+import PasswordGenerator from '@/components/tools/PasswordGenerator.astro';
+import ColorPaletteGenerator from '@/components/tools/ColorPaletteGenerator.astro';
+import QRCodeGenerator from '@/components/tools/QRCodeGenerator.astro';
+import UsernameGenerator from '@/components/tools/UsernameGenerator.astro';
+import CompressImage from '@/components/tools/CompressImage.astro';
+import ResizeImage from '@/components/tools/ResizeImage.astro';
+import ConvertImage from '@/components/tools/ConvertImage.astro';
+import ImageSize from '@/components/tools/ImageSize.astro';
+
+const COMPONENTS: Record<string, any> = {
+  'password-generator': PasswordGenerator,
+  'color-palette-generator': ColorPaletteGenerator,
+  'qr-code-generator': QRCodeGenerator,
+  'username-generator': UsernameGenerator,
+  'compress-image': CompressImage,
+  'resize-image': ResizeImage,
+  'convert-image': ConvertImage,
+  'image-size': ImageSize,
+};
+
+export function getStaticPaths() {
+  const paths = [];
+  for (const locale of SITE.locales) {
+    for (const tool of tools) {
+      paths.push({
+        params: { lang: locale, slug: tool.content[locale].slug },
+        props: { toolId: tool.id, locale },
+      });
+    }
+  }
+  return paths;
+}
+
+const { toolId, locale } = Astro.props as { toolId: string; locale: Locale };
+const tool = getTool(toolId)!;
+const c = tool.content[locale];
+const Comp = COMPONENTS[toolId];
+const path = `/${locale}/${c.slug}`;
+const url = ORIGIN + withBase(path);
+
+const jsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebApplication',
+    name: c.name,
+    url,
+    description: c.description,
+    applicationCategory: 'UtilitiesApplication',
+    operatingSystem: 'Any (web browser)',
+    browserRequirements: 'Requires JavaScript.',
+    inLanguage: locale,
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    publisher: { '@type': 'Organization', name: SITE.name },
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: c.faq.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: SITE.name, item: ORIGIN + withBase(`/${locale}`) },
+      { '@type': 'ListItem', position: 2, name: c.name, item: url },
+    ],
+  },
+];
+---
+
+<Layout
+  title={c.title}
+  description={c.description}
+  keywords={c.keywords}
+  locale={locale}
+  path={path}
+  kind={tool.id}
+  jsonLd={jsonLd}
+>
+  <ToolShell tool={tool} locale={locale}>
+    <Comp tool={tool} locale={locale} />
+  </ToolShell>
+</Layout>

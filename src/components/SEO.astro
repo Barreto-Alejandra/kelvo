@@ -1,0 +1,61 @@
+---
+import { SITE, ORIGIN, type Locale } from '@/config';
+import { alternatesFor, withBase } from '@/i18n/utils';
+
+interface Props {
+  title: string;
+  description: string;
+  keywords?: string;
+  locale: Locale;
+  /** Current page path, e.g. "/en/password-generator". */
+  path: string;
+  /** "home" or a tool id — used to build hreflang alternates. */
+  kind: 'home' | string;
+  /** Extra JSON-LD objects to embed (already plain objects). */
+  jsonLd?: Record<string, unknown>[];
+}
+
+const { title, description, keywords, locale, path, kind, jsonLd = [] } = Astro.props;
+
+const canonical = ORIGIN + withBase(path);
+const fullTitle = `${title} · ${SITE.name}`;
+const ogImage = ORIGIN + withBase('/og.png');
+const alternates = alternatesFor(kind);
+const ogLocale = locale === 'es' ? 'es_ES' : 'en_US';
+---
+
+<title>{fullTitle}</title>
+<meta name="description" content={description} />
+{keywords && <meta name="keywords" content={keywords} />}
+<link rel="canonical" href={canonical} />
+
+{/* hreflang alternates for international SEO */}
+{
+  alternates.map((alt) => (
+    <link rel="alternate" hreflang={alt.locale} href={ORIGIN + alt.path} />
+  ))
+}
+<link rel="alternate" hreflang="x-default" href={ORIGIN + (alternates.find((a) => a.locale === SITE.defaultLocale)?.path ?? path)} />
+
+{/* Open Graph */}
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content={SITE.name} />
+<meta property="og:title" content={fullTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImage} />
+<meta property="og:locale" content={ogLocale} />
+
+{/* Twitter */}
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={fullTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImage} />
+
+<meta name="robots" content="index, follow, max-image-preview:large" />
+
+{
+  jsonLd.map((obj) => (
+    <script type="application/ld+json" set:html={JSON.stringify(obj)} />
+  ))
+}

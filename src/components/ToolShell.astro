@@ -1,0 +1,69 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { tools } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+import { homePath, toolPath } from '@/i18n/utils';
+import AdSlot from './AdSlot.astro';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const c = tool.content[locale];
+const t = useTranslations(locale);
+const home = homePath(locale);
+
+const related = tools.filter((x) => x.id !== tool.id).slice(0, 4);
+---
+
+<nav class="breadcrumb" aria-label="Breadcrumb">
+  <a href={home}>{t('common.backHome')}</a> / {c.name}
+</nav>
+
+<div class="tool-head">
+  <span class="ico" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={tool.icon} />
+  </span>
+  <h1>{c.h1}</h1>
+  <p class="lede">{c.intro}</p>
+</div>
+
+<!-- Interactive tool island -->
+<slot />
+
+<AdSlot locale={locale} />
+
+<!-- FAQ -->
+<section class="faq" aria-labelledby="faq-title">
+  <h2 id="faq-title">{t('common.faq')}</h2>
+  {
+    c.faq.map((item) => (
+      <details>
+        <summary>{item.q}</summary>
+        <p>{item.a}</p>
+      </details>
+    ))
+  }
+</section>
+
+<!-- Related tools -->
+<section aria-labelledby="related-title">
+  <div class="section-title">
+    <h2 id="related-title">{t('common.relatedTools')}</h2>
+  </div>
+  <div class="grid">
+    {
+      related.map((r) => (
+        <a class="tool-card" href={toolPath(locale, r)}>
+          <span class="ico" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={r.icon} />
+          </span>
+          <h3>{r.content[locale].name}</h3>
+          <p>{r.content[locale].description}</p>
+        </a>
+      ))
+    }
+  </div>
+</section>

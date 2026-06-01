@@ -1,0 +1,79 @@
+---
+import type { Locale } from '@/config';
+import type { Tool } from '@/i18n/tools';
+import { useTranslations } from '@/i18n/ui';
+
+interface Props {
+  tool: Tool;
+  locale: Locale;
+}
+const { tool, locale } = Astro.props;
+const L = tool.content[locale].ui;
+const t = useTranslations(locale);
+---
+
+<div class="panel">
+  <div class="dropzone" id="is-drop" role="button" tabindex="0" aria-label={t('common.dropHere')}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+    <p><strong>{t('common.dropHere')}</strong></p>
+    <p class="muted">{t('common.dropHint')}</p>
+    <input type="file" id="is-input" accept="image/*" class="hidden" />
+  </div>
+
+  <div id="is-work" class="hidden">
+    <div style="text-align:center;margin-bottom:18px">
+      <img id="is-preview" class="preview-img" alt="" />
+    </div>
+
+    <div class="stats" style="margin-bottom:18px">
+      <div class="stat"><div class="k">{L.dimensions}</div><div class="v" id="is-dim">—</div></div>
+      <div class="stat"><div class="k">{L.fileSize}</div><div class="v" id="is-size">—</div></div>
+      <div class="stat"><div class="k">{L.aspectRatio}</div><div class="v" id="is-ar">—</div></div>
+      <div class="stat"><div class="k">{L.megapixels}</div><div class="v" id="is-mp">—</div></div>
+      <div class="stat"><div class="k">{L.fileType}</div><div class="v" id="is-type" style="font-size:0.95rem">—</div></div>
+      <div class="stat"><div class="k">{L.fileName}</div><div class="v" id="is-name" style="font-size:0.85rem;word-break:break-all">—</div></div>
+    </div>
+
+    <button class="btn secondary" id="is-reset" type="button">{L.chooseAnother}</button>
+  </div>
+
+  <div class="privacy-note" style="margin-top:14px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    {t('common.processedLocally')}
+  </div>
+</div>
+
+<script>
+  import { setupDropzone, formatBytes, gcd, type LoadedImage } from '@/scripts/image-utils';
+
+  const drop = document.getElementById('is-drop') as HTMLElement;
+  const input = document.getElementById('is-input') as HTMLInputElement;
+  const work = document.getElementById('is-work') as HTMLElement;
+  const preview = document.getElementById('is-preview') as HTMLImageElement;
+
+  let current: LoadedImage | null = null;
+
+  setupDropzone(drop, input, (data) => {
+    current = data;
+    const w = data.img.naturalWidth;
+    const h = data.img.naturalHeight;
+    const g = gcd(w, h) || 1;
+    preview.src = data.url;
+    (document.getElementById('is-dim') as HTMLElement).textContent = `${w} × ${h} px`;
+    (document.getElementById('is-size') as HTMLElement).textContent = formatBytes(data.file.size);
+    (document.getElementById('is-ar') as HTMLElement).textContent = `${w / g} : ${h / g}`;
+    (document.getElementById('is-mp') as HTMLElement).textContent = `${(w * h / 1e6).toFixed(2)} MP`;
+    (document.getElementById('is-type') as HTMLElement).textContent = data.file.type || '—';
+    (document.getElementById('is-name') as HTMLElement).textContent = data.file.name;
+    drop.classList.add('hidden');
+    work.classList.remove('hidden');
+  });
+
+  document.getElementById('is-reset')!.addEventListener('click', () => {
+    if (current) URL.revokeObjectURL(current.url);
+    current = null;
+    input.value = '';
+    work.classList.add('hidden');
+    drop.classList.remove('hidden');
+  });
+</script>
