@@ -75,3 +75,52 @@ const jsonLd = [
     <p class="muted" style="margin:0">{t('home.privacyBody')}</p>
   </section>
 </Layout>
+
+<script>
+  // Scroll-spy: highlight the nav item for the section in view. Also activates
+  // immediately on click, and treats "scrolled to the bottom" as the last
+  // section being active (so short pages still light up the final item).
+  const navLinks = new Map<string, HTMLAnchorElement>();
+  document.querySelectorAll<HTMLAnchorElement>('.header-nav a[href*="#"]').forEach((a) => {
+    const id = (a.getAttribute('href') || '').split('#')[1];
+    if (id) navLinks.set(id, a);
+  });
+  const sections = [...navLinks.keys()]
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => !!el);
+
+  if (sections.length) {
+    const headerH = (document.querySelector('.site-header') as HTMLElement)?.offsetHeight || 60;
+    const offset = headerH + 28;
+
+    function setActive(id: string | null) {
+      navLinks.forEach((a, key) => a.classList.toggle('active', key === id));
+    }
+
+    function onScroll() {
+      const y = window.scrollY;
+      let active: string | null = null;
+      for (const s of sections) {
+        if (s.offsetTop - offset <= y) active = s.id;
+      }
+      const atBottom = window.innerHeight + y >= document.documentElement.scrollHeight - 4;
+      if (atBottom) active = sections[sections.length - 1].id;
+      setActive(active);
+    }
+
+    let ticking = false;
+    window.addEventListener(
+      'scroll',
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(() => { onScroll(); ticking = false; });
+        }
+      },
+      { passive: true },
+    );
+    window.addEventListener('resize', onScroll);
+    navLinks.forEach((a, id) => a.addEventListener('click', () => setActive(id)));
+    onScroll();
+  }
+</script>
