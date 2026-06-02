@@ -24,8 +24,10 @@ Bilingüe **español + inglés** (rutas `/es/` y `/en/`) con SEO internacional (
 ## Stack
 
 [Astro](https://astro.build) — genera **HTML estático** (ideal para que Google indexe), envía
-**cero JavaScript por defecto** y solo carga el JS de la herramienta que se usa. Única dependencia
-de runtime: `qrcode` (para el generador de QR). El resto usa APIs nativas del navegador.
+**cero JavaScript por defecto** y solo carga el JS de la herramienta que se usa. Dependencias de
+runtime mínimas y cargadas solo donde hacen falta: `qr-code-styling` (QR), `jspdf` (export PDF del
+QR, perezoso) y `fflate` (ZIP del lote de imágenes en Pro). El resto usa APIs nativas del navegador
+(Canvas, Web Crypto).
 
 ## Comandos
 
@@ -139,8 +141,13 @@ el navegador** — no hace falta servidor.
   y `PRO_STORE_ID` (ver [`.env.example`](.env.example)). Mientras `PRO_CHECKOUT_URL` esté vacío, la
   página `/pro` muestra "Próximamente" en vez del botón de compra.
 - **Qué se cobra (aditivo, no se quita nada gratis):** la función Pro es el **procesamiento de
-  imágenes por lotes + descarga en ZIP**. Todas las herramientas actuales siguen 100% gratis.
-  *(El gate por `isPro()` se conecta en las herramientas de imagen — paso siguiente del roadmap.)*
+  imágenes por lotes + descarga en ZIP**, ya implementado en Comprimir, Redimensionar y Convertir
+  (arrastrás varias imágenes a la vez y bajás un único ZIP). Todo se procesa en el navegador con
+  `fflate`. Las herramientas siguen 100% gratis para una imagen.
+- **Cómo funciona el gate:** las 3 herramientas de imagen aceptan varios archivos. Si el usuario
+  **no** tiene Pro y suelta varios, ve un *upsell* hacia `/pro` (y se le procesa la primera imagen
+  igual); si `isPro()` es verdadero, se activa el modo lote. La lógica compartida está en
+  [`src/scripts/batch.ts`](src/scripts/batch.ts).
 
 ---
 

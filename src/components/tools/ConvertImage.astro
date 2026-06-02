@@ -2,6 +2,7 @@
 import type { Locale } from '@/config';
 import type { Tool } from '@/i18n/tools';
 import { useTranslations } from '@/i18n/ui';
+import { homePath } from '@/i18n/utils';
 
 interface Props {
   tool: Tool;
@@ -10,6 +11,7 @@ interface Props {
 const { tool, locale } = Astro.props;
 const L = tool.content[locale].ui;
 const t = useTranslations(locale);
+const proPath = `${homePath(locale)}/pro`;
 ---
 
 <div class="panel">
@@ -17,7 +19,7 @@ const t = useTranslations(locale);
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
     <p><strong>{t('common.dropHere')}</strong></p>
     <p class="muted">{t('common.dropHint')}</p>
-    <input type="file" id="cv-input" accept="image/*" class="hidden" />
+    <input type="file" id="cv-input" accept="image/*" multiple class="hidden" />
   </div>
 
   <div id="cv-work" class="hidden">
@@ -46,6 +48,53 @@ const t = useTranslations(locale);
     </div>
   </div>
 
+  <!-- Free tier: dropped many → gentle upsell (still loads the first image above) -->
+  <div id="cv-upsell" class="upsell hidden" data-selected={t('batch.selectedN')}>
+    <span class="badge-pro">PRO</span>
+    <p class="upsell-title">{t('batch.upsellTitle')}</p>
+    <p><strong id="cv-upsell-n"></strong> {t('batch.upsellBody')}</p>
+    <p class="muted">{t('batch.upsellShowingOne')}</p>
+    <a class="btn" href={proPath}>{t('pro.buy')}</a>
+  </div>
+
+  <!-- Pro: batch mode -->
+  <div
+    id="cv-batch"
+    class="batch hidden"
+    data-processing={t('batch.processing')}
+    data-done={t('batch.done')}
+    data-some-failed={t('batch.someFailed')}
+    data-too-many={t('batch.tooMany')}
+  >
+    <div class="batch-head">
+      <span class="badge-pro">PRO</span>
+      <strong><span id="cv-batch-n">0</span> {t('batch.ready')}</strong>
+    </div>
+
+    <div class="row" style="margin:14px 0">
+      <div style="min-width:150px">
+        <label for="cv-bfmt">{L.convertTo}</label>
+        <select id="cv-bfmt">
+          <option value="image/png">PNG</option>
+          <option value="image/jpeg">JPG</option>
+          <option value="image/webp">WebP</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:180px" id="cv-bqwrap">
+        <label for="cv-bq">{L.quality}: <span id="cv-bqv" style="color:var(--accent)">92</span>%</label>
+        <input type="range" id="cv-bq" min="10" max="100" step="1" value="92" />
+      </div>
+    </div>
+
+    <ul id="cv-batch-list" class="batch-list"></ul>
+    <p id="cv-batch-status" class="muted" role="status" aria-live="polite" style="margin:12px 0 0"></p>
+
+    <div class="row" style="margin-top:14px">
+      <button class="btn" id="cv-batch-dl" type="button">{t('batch.downloadZip')}</button>
+      <button class="btn secondary" id="cv-batch-reset" type="button">{t('batch.startOver')}</button>
+    </div>
+  </div>
+
   <div class="privacy-note" style="margin-top:14px">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
     {t('common.processedLocally')}
@@ -54,46 +103,101 @@ const t = useTranslations(locale);
 
 <script>
   import {
-    setupDropzone, renderCanvas, canvasToBlob, triggerDownload,
+    setupDropzone, loadImage, renderCanvas, canvasToBlob, triggerDownload,
     baseName, EXT, type LoadedImage,
   } from '@/scripts/image-utils';
+  import { isPro } from '@/scripts/pro';
+  import { processToZip, MAX_BATCH } from '@/scripts/batch';
 
-  const drop = document.getElementById('cv-drop') as HTMLElement;
-  const input = document.getElementById('cv-input') as HTMLInputElement;
-  const work = document.getElementById('cv-work') as HTMLElement;
-  const preview = document.getElementById('cv-preview') as HTMLImageElement;
-  const fmt = document.getElementById('cv-fmt') as HTMLSelectElement;
-  const q = document.getElementById('cv-q') as HTMLInputElement;
-  const qv = document.getElementById('cv-qv') as HTMLElement;
-  const qwrap = document.getElementById('cv-qwrap') as HTMLElement;
+  const $ = (id: string) => document.getElementById(id) as HTMLElement;
+  const drop = $('cv-drop');
+  const input = $('cv-input') as HTMLInputElement;
+  const work = $('cv-work');
+  const preview = $('cv-preview') as HTMLImageElement;
+  const fmt = $('cv-fmt') as HTMLSelectElement;
+  const q = $('cv-q') as HTMLInputElement;
+  const qv = $('cv-qv');
+  const qwrap = $('cv-qwrap');
+
+  const upsell = $('cv-upsell');
+  const upsellN = $('cv-upsell-n');
+  const batch = $('cv-batch');
+  const batchN = $('cv-batch-n');
+  const bfmt = $('cv-bfmt') as HTMLSelectElement;
+  const bq = $('cv-bq') as HTMLInputElement;
+  const bqv = $('cv-bqv');
+  const bqwrap = $('cv-bqwrap');
+  const batchList = $('cv-batch-list');
+  const batchStatus = $('cv-batch-status');
+  const batchDl = $('cv-batch-dl') as HTMLButtonElement;
 
   let current: LoadedImage | null = null;
+  let batchFiles: File[] = [];
 
   function syncQuality() {
     qwrap.style.display = fmt.value === 'image/png' ? 'none' : '';
   }
+  function syncBatchQuality() {
+    bqwrap.style.display = bfmt.value === 'image/png' ? 'none' : '';
+  }
 
-  setupDropzone(drop, input, (data) => {
+  function encodeOne(img: HTMLImageElement, type: string, quality: number): Promise<Blob> {
+    const bg = type === 'image/jpeg' ? '#ffffff' : undefined;
+    const canvas = renderCanvas(img, img.naturalWidth, img.naturalHeight, bg);
+    return canvasToBlob(canvas, type, quality);
+  }
+
+  function loadSingle(data: LoadedImage) {
     current = data;
     preview.src = data.url;
-    drop.classList.add('hidden');
     work.classList.remove('hidden');
     syncQuality();
-  });
+  }
+
+  setupDropzone(
+    drop, input,
+    (data) => { drop.classList.add('hidden'); loadSingle(data); },
+    (files) => { isPro() ? startBatch(files) : showUpsell(files); },
+  );
+
+  function showUpsell(files: File[]) {
+    upsellN.textContent = (upsell.dataset.selected || '').replace('%n', String(files.length));
+    drop.classList.add('hidden');
+    upsell.classList.remove('hidden');
+    loadImage(files[0]).then(loadSingle).catch(() => {});
+  }
+
+  function startBatch(files: File[]) {
+    batchFiles = files.slice(0, MAX_BATCH);
+    batchN.textContent = String(batchFiles.length);
+    batchList.innerHTML = '';
+    for (const f of batchFiles) {
+      const li = document.createElement('li');
+      const nm = document.createElement('span'); nm.className = 'bl-name'; nm.textContent = f.name;
+      const sz = document.createElement('span'); sz.className = 'bl-size'; sz.textContent = `${(f.size / 1024).toFixed(0)} KB`;
+      li.append(nm, sz);
+      batchList.appendChild(li);
+    }
+    batchStatus.textContent = files.length > MAX_BATCH ? (batch.dataset.tooMany || '') : '';
+    syncBatchQuality();
+    drop.classList.add('hidden');
+    work.classList.add('hidden');
+    batch.classList.remove('hidden');
+  }
 
   fmt.addEventListener('change', syncQuality);
   q.addEventListener('input', () => (qv.textContent = q.value));
+  bfmt.addEventListener('change', syncBatchQuality);
+  bq.addEventListener('input', () => (bqv.textContent = bq.value));
 
-  const cvDl = document.getElementById('cv-dl') as HTMLButtonElement;
+  const cvDl = $('cv-dl') as HTMLButtonElement;
   cvDl.addEventListener('click', async () => {
     if (!current) return;
     const type = fmt.value;
-    const bg = type === 'image/jpeg' ? '#ffffff' : undefined;
     let url = '';
     cvDl.disabled = true;
     try {
-      const canvas = renderCanvas(current.img, current.img.naturalWidth, current.img.naturalHeight, bg);
-      const blob = await canvasToBlob(canvas, type, parseInt(q.value, 10) / 100);
+      const blob = await encodeOne(current.img, type, parseInt(q.value, 10) / 100);
       url = URL.createObjectURL(blob);
       triggerDownload(url, `${baseName(current.file.name)}-converted.${EXT[type]}`);
       setTimeout(() => URL.revokeObjectURL(url), 1000);
@@ -105,11 +209,44 @@ const t = useTranslations(locale);
     }
   });
 
-  document.getElementById('cv-reset')!.addEventListener('click', () => {
+  batchDl.addEventListener('click', async () => {
+    if (!batchFiles.length) return;
+    batchDl.disabled = true;
+    const type = bfmt.value;
+    const quality = parseInt(bq.value, 10) / 100;
+    const total = batchFiles.length;
+    const procLabel = batch.dataset.processing || 'Processing';
+    const res = await processToZip(
+      batchFiles,
+      async (file) => {
+        const { img, url } = await loadImage(file);
+        try {
+          const blob = await encodeOne(img, type, quality);
+          return { name: `${baseName(file.name)}-converted.${EXT[type]}`, blob };
+        } finally {
+          URL.revokeObjectURL(url);
+        }
+      },
+      'kelvo-converted.zip',
+      (done) => { batchStatus.textContent = `${procLabel}… ${done}/${total}`; },
+    );
+    batchDl.disabled = false;
+    batchStatus.textContent =
+      (batch.dataset.done || '') + (res.failed > 0 ? ` — ${batch.dataset.someFailed || ''}` : '');
+    (window as any).showToast?.(batch.dataset.done || '');
+  });
+
+  function resetAll() {
     if (current) URL.revokeObjectURL(current.url);
-    current = null;
+    current = null; batchFiles = [];
     input.value = '';
     work.classList.add('hidden');
+    upsell.classList.add('hidden');
+    batch.classList.add('hidden');
+    batchStatus.textContent = '';
     drop.classList.remove('hidden');
-  });
+  }
+
+  $('cv-reset').addEventListener('click', resetAll);
+  $('cv-batch-reset').addEventListener('click', resetAll);
 </script>

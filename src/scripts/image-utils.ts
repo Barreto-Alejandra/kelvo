@@ -7,11 +7,17 @@ export interface LoadedImage {
   url: string;
 }
 
-/** Wire a dropzone + hidden file input. Calls onImage once an image is loaded. */
+/**
+ * Wire a dropzone + hidden file input.
+ * - `onImage` fires when a single image is loaded (decoded + object URL ready).
+ * - `onMultiple` (optional) fires when 2+ images are dropped/selected at once.
+ *   When omitted, only the first image is used (single-file behaviour).
+ */
 export function setupDropzone(
   dz: HTMLElement,
   input: HTMLInputElement,
   onImage: (data: LoadedImage) => void,
+  onMultiple?: (files: File[]) => void,
 ): void {
   const open = () => input.click();
   dz.addEventListener('click', open);
@@ -33,22 +39,42 @@ export function setupDropzone(
   dz.addEventListener('drop', (e: DragEvent) => {
     e.preventDefault();
     dz.classList.remove('drag');
-    const f = e.dataTransfer?.files?.[0];
-    if (f) handle(f);
+    accept(e.dataTransfer?.files);
   });
-  input.addEventListener('change', () => {
-    const f = input.files?.[0];
-    if (f) handle(f);
-  });
+  input.addEventListener('change', () => accept(input.files));
+
+  function accept(list: FileList | null | undefined) {
+    if (!list || list.length === 0) return;
+    const imgs = Array.from(list).filter((f) => f.type.startsWith('image/'));
+    if (imgs.length === 0) return;
+    if (imgs.length > 1 && onMultiple) {
+      onMultiple(imgs);
+      return;
+    }
+    handle(imgs[0]);
+  }
 
   function handle(file: File) {
-    if (!file.type.startsWith('image/')) return;
     const url = URL.createObjectURL(file);
     const img = new Image();
     img.onload = () => onImage({ file, img, url });
     img.onerror = () => URL.revokeObjectURL(url);
     img.src = url;
   }
+}
+
+/** Promise form of decoding one File into an image + object URL (for batch). */
+export function loadImage(file: File): Promise<LoadedImage> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => resolve({ file, img, url });
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Could not decode image'));
+    };
+    img.src = url;
+  });
 }
 
 export function formatBytes(n: number): string {
