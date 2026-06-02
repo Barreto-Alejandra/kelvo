@@ -35,15 +35,18 @@ export function toolPath(locale: Locale, tool: Tool): string {
 
 /**
  * Build the set of hreflang alternates for a page.
- * `kind` is "home" or a tool id. Returns [{ locale, href }] with absolute-free paths.
+ * `kind` is "home", a tool id, or a static slug shared across locales (e.g. "pro").
  */
 export function alternatesFor(kind: 'home' | string): { locale: Locale; path: string }[] {
   if (kind === 'home') {
     return locales.map((l) => ({ locale: l, path: homePath(l) }));
   }
   const tool = tools.find((t) => t.id === kind);
-  if (!tool) return [];
-  return locales.map((l) => ({ locale: l, path: toolPath(l, tool) }));
+  if (tool) {
+    return locales.map((l) => ({ locale: l, path: toolPath(l, tool) }));
+  }
+  // Static page with the same slug in every locale, e.g. /en/pro and /es/pro.
+  return locales.map((l) => ({ locale: l, path: withBase(`/${l}/${kind}`) }));
 }
 
 /** The "other" locale for a simple two-language switcher, given current locale + page kind. */

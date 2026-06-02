@@ -9,15 +9,28 @@ export const SITE = {
   defaultLocale: 'en' as const,
   /** Supported locales. Order matters for the language switcher. */
   locales: ['en', 'es'] as const,
-  /**
-   * Google AdSense publisher id, e.g. "ca-pub-1234567890123456".
-   * Leave empty to render NO ads at all (recommended until you're approved).
-   * Set the ADSENSE_CLIENT env var to enable.
-   */
-  adsenseClient: process.env.ADSENSE_CLIENT || '',
 };
 
 export type Locale = (typeof SITE.locales)[number];
+
+/**
+ * Kelvo Pro — one-time purchase (no ads, no subscription). Powered by Lemon
+ * Squeezy as Merchant of Record (it handles VAT/tax). License validation runs
+ * entirely client-side via the public License API, so no server is required.
+ *
+ * Fill these in once the product exists in Lemon Squeezy. Until `checkoutUrl`
+ * is set, the Pro page shows a "coming soon" state instead of a buy button.
+ */
+export const PRO = {
+  /** Hosted checkout / buy link, e.g. "https://kelvo.lemonsqueezy.com/buy/XXXX". */
+  checkoutUrl: process.env.PRO_CHECKOUT_URL || '',
+  /** Lemon Squeezy store id (number) — needed by the license validate/activate API. */
+  storeId: process.env.PRO_STORE_ID || '',
+  /** Price shown on the Pro page (display only; Lemon Squeezy is the source of truth). */
+  price: process.env.PRO_PRICE || 'US$9',
+  /** localStorage key that marks a device as Pro. */
+  storageKey: 'kelvo_pro',
+};
 
 /** The canonical production origin (no trailing slash). Used for absolute URLs in JSON-LD/OG. */
 export const ORIGIN = (process.env.SITE_URL || 'https://kelvo.com').replace(/\/$/, '');

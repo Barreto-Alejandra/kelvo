@@ -4,7 +4,6 @@ import type { Tool } from '@/i18n/tools';
 import { tools } from '@/i18n/tools';
 import { useTranslations } from '@/i18n/ui';
 import { homePath, toolPath } from '@/i18n/utils';
-import AdSlot from './AdSlot.astro';
 
 interface Props {
   tool: Tool;
@@ -32,8 +31,6 @@ const related = tools.filter((x) => x.id !== tool.id).slice(0, 4);
 
 <!-- Interactive tool island -->
 <slot />
-
-<AdSlot locale={locale} />
 
 <!-- FAQ -->
 <section class="faq" aria-labelledby="faq-title">

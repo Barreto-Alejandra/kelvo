@@ -2,6 +2,7 @@
 import type { Locale } from '@/config';
 import { SITE } from '@/config';
 import { useTranslations } from '@/i18n/ui';
+import { homePath } from '@/i18n/utils';
 
 interface Props {
   locale: Locale;
@@ -9,11 +10,16 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 const year = 2026;
+const proPath = `${homePath(locale)}/pro`;
 ---
 
 <footer class="site-footer">
   <div class="container inner">
     <span>© {year} {SITE.name} · {t('footer.privacy')}</span>
-    <span>{t('footer.madeWith')}</span>
+    <span class="footer-links">
+      <a href={proPath}>{t('footer.pro')}</a>
+      <span>·</span>
+      <span>{t('footer.madeWith')}</span>
+    </span>
   </div>
 </footer>

@@ -40,7 +40,7 @@ npm run preview  # sirve dist/ localmente para probar el build
 
 ```
 src/
-  config.ts                 # nombre del sitio, idiomas, AdSense, dominio
+  config.ts                 # nombre del sitio, idiomas, dominio, config de Pro
   i18n/
     ui.ts                   # textos globales (header, footer, botones) en es/en
     tools.ts                # ⭐ registro de herramientas: slugs, títulos, descripciones, FAQ (SEO)
@@ -49,7 +49,6 @@ src/
   components/
     SEO.astro               # meta tags, canonical, hreflang, Open Graph, JSON-LD
     ToolShell.astro         # marco de cada herramienta (breadcrumb, FAQ, relacionadas)
-    AdSlot.astro            # anuncio discreto (solo si ADSENSE_CLIENT está configurado)
     tools/*.astro           # las 8 herramientas (UI + lógica cliente)
   scripts/image-utils.ts    # lógica compartida de las herramientas de imagen
   pages/
@@ -89,7 +88,7 @@ sitios estáticos. **Gratis** en Netlify, Vercel, Cloudflare Pages o GitHub Page
    - **Netlify / Vercel / Cloudflare Pages:** conectá el proyecto y usá
      - Build command: `npm run build`
      - Publish/output directory: `dist`
-     - Variable de entorno: `SITE_URL` (y `ADSENSE_CLIENT` si ya tenés AdSense).
+     - Variables de entorno: `SITE_URL` (y `PRO_CHECKOUT_URL` / `PRO_STORE_ID` cuando actives Pro).
    - **Drag & drop:** en Netlify podés arrastrar la carpeta `dist/` directo a la web.
 
 > Es un sitio estático: **no necesita servidor de Node** en producción.
@@ -126,19 +125,22 @@ mejor rankea.
 
 ---
 
-## 💰 Monetización
+## 💰 Monetización — Kelvo Pro (pago único, sin anuncios)
 
-### Anuncio discreto (Google AdSense)
-- El componente [`AdSlot.astro`](src/components/AdSlot.astro) ya está colocado en la home y en
-  cada herramienta, **pero no muestra nada hasta que configures AdSense**.
-- Cuando tu sitio esté aprobado, definí la variable `ADSENSE_CLIENT=ca-pub-XXXXXXXX` y recompilá.
-  El script de AdSense se carga solo y los slots se activan.
-- En desarrollo (`npm run dev`) verás un *placeholder* gris donde irían los anuncios.
+El modelo es un **pago único** (sin suscripción y **sin anuncios**) vía **Lemon Squeezy**, que
+actúa de *Merchant of Record* (cobra el IVA por vos) y cuya **API de licencias funciona 100% desde
+el navegador** — no hace falta servidor.
 
-### Versión "pro" (idea para el futuro)
-El gancho ya está pensado: una bandera en `localStorage` (`pro`) puede ocultar los anuncios y/o
-subir límites. La integración de pago (p. ej. un pago único con Stripe/Lemon Squeezy) queda para
-una segunda etapa.
+- Página de venta + activación: [`src/pages/[lang]/pro.astro`](src/pages/%5Blang%5D/pro.astro)
+  (`/es/pro`, `/en/pro`), enlazada desde el footer.
+- Estado de licencia (cliente): [`src/scripts/pro.ts`](src/scripts/pro.ts) — `isPro()`,
+  `activateLicense(key)`, `deactivate()`. El flag se cachea en `localStorage` (`kelvo_pro`).
+- **Para activarlo:** creá el producto en Lemon Squeezy y definí las variables `PRO_CHECKOUT_URL`
+  y `PRO_STORE_ID` (ver [`.env.example`](.env.example)). Mientras `PRO_CHECKOUT_URL` esté vacío, la
+  página `/pro` muestra "Próximamente" en vez del botón de compra.
+- **Qué se cobra (aditivo, no se quita nada gratis):** la función Pro es el **procesamiento de
+  imágenes por lotes + descarga en ZIP**. Todas las herramientas actuales siguen 100% gratis.
+  *(El gate por `isPro()` se conecta en las herramientas de imagen — paso siguiente del roadmap.)*
 
 ---
 

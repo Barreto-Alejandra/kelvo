@@ -712,19 +712,6 @@ button:disabled {
   margin: 0 0 12px;
 }
 
-/* ── Ad slot ──────────────────────────────────────────── */
-.ad-slot {
-  margin: 26px 0;
-  text-align: center;
-}
-.ad-slot .ad-label {
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-faint);
-  margin-bottom: 4px;
-}
-
 /* ── Footer ───────────────────────────────────────────── */
 .site-footer {
   border-top: 1px solid var(--border);
@@ -741,6 +728,15 @@ button:disabled {
 }
 .site-footer a {
   color: var(--text-soft);
+}
+.footer-links {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.footer-links a {
+  font-weight: 600;
 }
 
 .toast {

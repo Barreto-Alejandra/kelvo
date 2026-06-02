@@ -1,5 +1,5 @@
 ---
-import { SITE, type Locale } from '@/config';
+import type { Locale } from '@/config';
 import { useTranslations } from '@/i18n/ui';
 import { alternatesFor, withBase } from '@/i18n/utils';
 import SEO from '@/components/SEO.astro';
@@ -41,15 +41,6 @@ const errorLabel = t('common.error');
       kind={kind}
       jsonLd={jsonLd}
     />
-    {
-      SITE.adsenseClient && (
-        <script
-          async
-          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${SITE.adsenseClient}`}
-          crossorigin="anonymous"
-        />
-      )
-    }
   </head>
   <body data-copied={copiedLabel} data-error={errorLabel}>
     <Header locale={locale} alternates={alternates} />
