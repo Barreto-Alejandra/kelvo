@@ -54,6 +54,10 @@ export const ui = {
     'lang.en': 'English',
     'lang.es': 'Español',
     'footer.pro': 'Kelvo Pro',
+    'footer.about': 'About',
+    'footer.privacyPage': 'Privacy',
+    'footer.terms': 'Terms',
+    'footer.navAria': 'Footer',
     'pro.title': 'Kelvo Pro — one-time upgrade',
     'pro.desc':
       'Unlock batch image processing and ZIP downloads with a one-time purchase. No subscription, no ads, still 100% in your browser.',
@@ -131,6 +135,10 @@ export const ui = {
     'lang.en': 'English',
     'lang.es': 'Español',
     'footer.pro': 'Kelvo Pro',
+    'footer.about': 'Acerca',
+    'footer.privacyPage': 'Privacidad',
+    'footer.terms': 'Términos',
+    'footer.navAria': 'Pie de página',
     'pro.title': 'Kelvo Pro — mejora de pago único',
     'pro.desc':
       'Desbloqueá el procesamiento de imágenes por lotes y la descarga en ZIP con un pago único. Sin suscripción, sin anuncios, y todo sigue en tu navegador.',

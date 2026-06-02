@@ -1,0 +1,150 @@
+---
+import { SITE, CONTACT, LEGAL_UPDATED, type Locale } from '@/config';
+import { homePath } from '@/i18n/utils';
+import Layout from '@/layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return SITE.locales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+const { locale } = Astro.props as { locale: Locale };
+const path = `/${locale}/terms`;
+const proPath = `${homePath(locale)}/pro`;
+const mail = CONTACT.email;
+const updated = LEGAL_UPDATED[locale];
+
+const C = {
+  en: {
+    title: 'Terms of Use',
+    desc:
+      'The simple terms for using Kelvo and Kelvo Pro: free browser-based tools, a one-time upgrade, and a 14-day no-questions refund.',
+    updatedLabel: 'Last updated',
+    lede: 'These are the plain-language terms for using Kelvo. By using the site you agree to them.',
+    sections: [
+      {
+        h: 'The service',
+        body: [
+          'Kelvo provides free, browser-based tools “as is.” We work to keep them accurate and available, but we can’t guarantee they’ll be error-free or never go down.',
+        ],
+      },
+      {
+        h: 'Using the free tools',
+        body: [
+          'The free tools are yours to use for personal and commercial work. Whatever you create with them — passwords, images, QR codes — belongs to you. We claim nothing.',
+        ],
+      },
+      {
+        h: 'Kelvo Pro',
+        body: [
+          'Kelvo Pro is a <strong>one-time purchase</strong> that unlocks batch processing and one-click ZIP downloads on your device. It is not a subscription and does not auto-renew. Pro is sold and billed by <strong>Lemon Squeezy</strong> as Merchant of Record. See <a href="' +
+            proPath +
+            '">the Pro page</a> for what’s included.',
+        ],
+      },
+      {
+        h: 'Refunds',
+        body: [
+          '<strong>14-day, no-questions-asked.</strong> If Kelvo Pro isn’t for you, contact us within 14 days of your purchase for a full refund. No need to explain why.',
+        ],
+      },
+      {
+        h: 'Acceptable use',
+        body: [
+          'Please don’t use Kelvo for anything unlawful, and don’t try to break, overload or abuse the service or work around the Pro features.',
+        ],
+      },
+      {
+        h: 'No warranty and liability',
+        body: [
+          'Kelvo is provided “as is,” without warranties of any kind. To the maximum extent permitted by law, we are not liable for any loss or damage arising from your use of the tools. Always keep your own copies of important files.',
+        ],
+      },
+      {
+        h: 'Changes, law and contact',
+        body: [
+          'We may update these terms; the date above reflects the latest version. These terms are governed by the laws applicable in the operator’s place of residence. Questions? Email <a href="mailto:' +
+            mail +
+            '">' +
+            mail +
+            '</a>.',
+        ],
+      },
+    ],
+  },
+  es: {
+    title: 'Términos de uso',
+    desc:
+      'Los términos simples para usar Kelvo y Kelvo Pro: herramientas gratis en el navegador, una mejora de pago único y reembolso de 14 días sin preguntas.',
+    updatedLabel: 'Última actualización',
+    lede: 'Estos son los términos, en lenguaje claro, para usar Kelvo. Al usar el sitio, los aceptás.',
+    sections: [
+      {
+        h: 'El servicio',
+        body: [
+          'Kelvo ofrece herramientas gratis basadas en el navegador “tal cual”. Trabajamos para mantenerlas precisas y disponibles, pero no podemos garantizar que estén libres de errores o que nunca se caigan.',
+        ],
+      },
+      {
+        h: 'Uso de las herramientas gratis',
+        body: [
+          'Las herramientas gratis son tuyas para uso personal y comercial. Lo que crees con ellas — contraseñas, imágenes, códigos QR — te pertenece. No reclamamos nada.',
+        ],
+      },
+      {
+        h: 'Kelvo Pro',
+        body: [
+          'Kelvo Pro es una <strong>compra de pago único</strong> que desbloquea el procesamiento por lotes y la descarga en ZIP de un clic en tu dispositivo. No es una suscripción y no se renueva sola. Pro lo vende y factura <strong>Lemon Squeezy</strong> como Merchant of Record. Mirá <a href="' +
+            proPath +
+            '">la página de Pro</a> para ver qué incluye.',
+        ],
+      },
+      {
+        h: 'Reembolsos',
+        body: [
+          '<strong>14 días, sin preguntas.</strong> Si Kelvo Pro no es para vos, contactanos dentro de los 14 días de tu compra y te devolvemos el importe completo. No hace falta que expliques por qué.',
+        ],
+      },
+      {
+        h: 'Uso aceptable',
+        body: [
+          'Por favor, no uses Kelvo para nada ilegal, y no intentes romper, sobrecargar o abusar del servicio, ni evadir las funciones de Pro.',
+        ],
+      },
+      {
+        h: 'Sin garantías y responsabilidad',
+        body: [
+          'Kelvo se ofrece “tal cual”, sin garantías de ningún tipo. En la máxima medida permitida por la ley, no somos responsables de ninguna pérdida o daño derivado del uso de las herramientas. Guardá siempre tus propias copias de los archivos importantes.',
+        ],
+      },
+      {
+        h: 'Cambios, ley y contacto',
+        body: [
+          'Podemos actualizar estos términos; la fecha de arriba refleja la última versión. Estos términos se rigen por las leyes aplicables en el lugar de residencia del operador. ¿Dudas? Escribí a <a href="mailto:' +
+            mail +
+            '">' +
+            mail +
+            '</a>.',
+        ],
+      },
+    ],
+  },
+}[locale];
+---
+
+<Layout title={C.title} description={C.desc} locale={locale} path={path} kind="terms">
+  <article class="legal">
+    <h1>{C.title}</h1>
+    <p class="legal-meta">{C.updatedLabel}: {updated}</p>
+    <p class="lede">{C.lede}</p>
+    {
+      C.sections.map((s) => (
+        <section>
+          <h2>{s.h}</h2>
+          {s.body.map((p) => (
+            <p set:html={p} />
+          ))}
+        </section>
+      ))
+    }
+  </article>
+</Layout>

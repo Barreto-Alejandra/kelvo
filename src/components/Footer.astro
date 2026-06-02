@@ -10,16 +10,27 @@ interface Props {
 const { locale } = Astro.props;
 const t = useTranslations(locale);
 const year = 2026;
-const proPath = `${homePath(locale)}/pro`;
+const base = homePath(locale);
+const links = [
+  { href: `${base}/pro`, label: t('footer.pro') },
+  { href: `${base}/about`, label: t('footer.about') },
+  { href: `${base}/privacy`, label: t('footer.privacyPage') },
+  { href: `${base}/terms`, label: t('footer.terms') },
+];
 ---
 
 <footer class="site-footer">
   <div class="container inner">
     <span>© {year} {SITE.name} · {t('footer.privacy')}</span>
-    <span class="footer-links">
-      <a href={proPath}>{t('footer.pro')}</a>
-      <span>·</span>
-      <span>{t('footer.madeWith')}</span>
-    </span>
+    <nav class="footer-links" aria-label={t('footer.navAria')}>
+      {
+        links.map((l, i) => (
+          <>
+            <a href={l.href}>{l.label}</a>
+            {i < links.length - 1 && <span aria-hidden="true">·</span>}
+          </>
+        ))
+      }
+    </nav>
   </div>
 </footer>

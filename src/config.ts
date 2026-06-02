@@ -34,3 +34,15 @@ export const PRO = {
 
 /** The canonical production origin (no trailing slash). Used for absolute URLs in JSON-LD/OG. */
 export const ORIGIN = (process.env.SITE_URL || 'https://kelvo.com').replace(/\/$/, '');
+
+/**
+ * Contact details shown on the About / Privacy / Terms pages. Single source of
+ * truth — set CONTACT_EMAIL once you have a real inbox (e.g. a @kelvo domain
+ * address) and it updates everywhere. The default is a placeholder.
+ */
+export const CONTACT = {
+  email: process.env.CONTACT_EMAIL || 'hola@kelvo.com',
+};
+
+/** Date the legal pages were last reviewed (shown on Privacy/Terms). */
+export const LEGAL_UPDATED = { en: 'June 2, 2026', es: '2 de junio de 2026' };

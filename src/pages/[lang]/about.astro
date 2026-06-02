@@ -1,0 +1,117 @@
+---
+import { SITE, CONTACT, type Locale } from '@/config';
+import { homePath } from '@/i18n/utils';
+import Layout from '@/layouts/Layout.astro';
+
+export function getStaticPaths() {
+  return SITE.locales.map((locale) => ({ params: { lang: locale }, props: { locale } }));
+}
+
+const { locale } = Astro.props as { locale: Locale };
+const path = `/${locale}/about`;
+const proPath = `${homePath(locale)}/pro`;
+const mail = CONTACT.email;
+
+const C = {
+  en: {
+    title: 'About Kelvo',
+    desc:
+      'Single-purpose web tools that run entirely in your browser — no signup, no upload, no tracking. Free, fast and private by design.',
+    lede:
+      'Kelvo is a small collection of web tools that each do one thing well — generate a password, compress an image, build a QR code — with no signup, no uploads and no tracking.',
+    sections: [
+      {
+        h: 'Why Kelvo exists',
+        body: [
+          'Most “free” online tools hide the real cost. They upload your files to a server, bury the page in ads and trackers, or push you to create an account before you can do anything. Kelvo is the opposite of that.',
+          'Every tool runs <strong>entirely in your browser</strong>, on your own device. Your files never travel to a server — because there is no server doing the work.',
+        ],
+      },
+      {
+        h: 'How it’s built',
+        body: [
+          'Kelvo is a static site: no backend, no database, no analytics, no cookies for tracking. That’s what makes it fast to load and impossible for us to peek at what you’re doing. Image tools use the browser’s Canvas; the password generator uses Web Crypto — all native, all local.',
+        ],
+      },
+      {
+        h: 'How Kelvo stays free',
+        body: [
+          'The tools are free and will stay free. There are <strong>no ads</strong>. If you’d like to support the project and unlock extra power — batch processing and one-click ZIP downloads — there’s a one-time <a href="' +
+            proPath +
+            '">Kelvo Pro</a> upgrade. Pay once, no subscription, ever.',
+        ],
+      },
+      {
+        h: 'Contact',
+        body: [
+          'Questions, ideas or found a bug? Email <a href="mailto:' +
+            mail +
+            '">' +
+            mail +
+            '</a> — feedback genuinely shapes what gets built next.',
+        ],
+      },
+    ],
+    foot: 'Kelvo is an independent project.',
+  },
+  es: {
+    title: 'Acerca de Kelvo',
+    desc:
+      'Herramientas web de un solo uso que funcionan enteramente en tu navegador: sin registro, sin subir nada, sin rastreo. Gratis, rápidas y privadas por diseño.',
+    lede:
+      'Kelvo es una pequeña colección de herramientas web que hacen una sola cosa bien — generar una contraseña, comprimir una imagen, crear un código QR — sin registro, sin subir nada y sin rastreo.',
+    sections: [
+      {
+        h: 'Por qué existe Kelvo',
+        body: [
+          'La mayoría de las herramientas “gratis” online esconden el costo real: suben tus archivos a un servidor, llenan la página de anuncios y rastreadores, o te obligan a crear una cuenta antes de poder hacer nada. Kelvo es lo contrario.',
+          'Cada herramienta funciona <strong>enteramente en tu navegador</strong>, en tu propio dispositivo. Tus archivos nunca viajan a un servidor, porque no hay ningún servidor haciendo el trabajo.',
+        ],
+      },
+      {
+        h: 'Cómo está hecha',
+        body: [
+          'Kelvo es un sitio estático: sin backend, sin base de datos, sin analítica, sin cookies de rastreo. Por eso carga rápido y nos resulta imposible espiar lo que hacés. Las herramientas de imagen usan el Canvas del navegador; el generador de contraseñas usa Web Crypto: todo nativo, todo local.',
+        ],
+      },
+      {
+        h: 'Cómo se mantiene gratis',
+        body: [
+          'Las herramientas son gratis y van a seguir siéndolo. <strong>No hay anuncios.</strong> Si querés apoyar el proyecto y desbloquear potencia extra — procesamiento por lotes y descarga en ZIP de un clic — existe la mejora de pago único <a href="' +
+            proPath +
+            '">Kelvo Pro</a>. Pagás una vez, sin suscripción, nunca.',
+        ],
+      },
+      {
+        h: 'Contacto',
+        body: [
+          '¿Dudas, ideas o encontraste un error? Escribí a <a href="mailto:' +
+            mail +
+            '">' +
+            mail +
+            '</a>: tus comentarios realmente moldean lo que se construye después.',
+        ],
+      },
+    ],
+    foot: 'Kelvo es un proyecto independiente.',
+  },
+}[locale];
+---
+
+<Layout title={C.title} description={C.desc} locale={locale} path={path} kind="about">
+  <article class="legal">
+    <h1>{C.title}</h1>
+    <p class="lede">{C.lede}</p>
+    {
+      C.sections.map((s) => (
+        <section>
+          <h2>{s.h}</h2>
+          {s.body.map((p) => (
+            <p set:html={p} />
+          ))}
+        </section>
+      ))
+    }
+    <p class="legal-foot">{C.foot}</p>
+  </article>
+</Layout>
