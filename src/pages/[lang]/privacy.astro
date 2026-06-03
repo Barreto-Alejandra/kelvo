@@ -10,7 +10,6 @@ const { locale } = Astro.props as { locale: Locale };
 const path = `/${locale}/privacy`;
 const mail = CONTACT.email;
 const updated = LEGAL_UPDATED[locale];
-const LS = 'https://www.lemonsqueezy.com/privacy';
 
 const C = {
   en: {
@@ -34,17 +33,9 @@ const C = {
         ],
       },
       {
-        h: 'Local storage',
+        h: 'No accounts, nothing stored',
         body: [
-          'If you buy Kelvo Pro, we save a single flag in your browser’s <code>localStorage</code> so this device remembers it has Pro. That flag stays in your browser — it’s never sent to us.',
-        ],
-      },
-      {
-        h: 'Payments',
-        body: [
-          'Purchases are handled by <strong>Lemon Squeezy</strong>, our payment provider and Merchant of Record. When you buy Kelvo Pro you interact with Lemon Squeezy — not Kelvo — and they process your payment and billing details under their own <a href="' +
-            LS +
-            '" rel="noopener" target="_blank">privacy policy</a>. To activate your license, your license key is sent to Lemon Squeezy’s license API to verify it. We never store your card or billing details.',
+          'There are no accounts and no login. Kelvo doesn’t use cookies or browser storage to track you, and nothing you do is saved on our side.',
         ],
       },
       {
@@ -86,17 +77,9 @@ const C = {
         ],
       },
       {
-        h: 'Almacenamiento local',
+        h: 'Sin cuentas, nada guardado',
         body: [
-          'Si comprás Kelvo Pro, guardamos un único indicador en el <code>localStorage</code> de tu navegador para que este dispositivo recuerde que tiene Pro. Ese indicador se queda en tu navegador: nunca se nos envía.',
-        ],
-      },
-      {
-        h: 'Pagos',
-        body: [
-          'Las compras las gestiona <strong>Lemon Squeezy</strong>, nuestro proveedor de pagos y Merchant of Record. Cuando comprás Kelvo Pro interactuás con Lemon Squeezy — no con Kelvo — y ellos procesan tus datos de pago y facturación bajo su propia <a href="' +
-            LS +
-            '" rel="noopener" target="_blank">política de privacidad</a>. Para activar tu licencia, tu clave se envía a la API de licencias de Lemon Squeezy para verificarla. Nunca guardamos tus datos de tarjeta ni de facturación.',
+          'No hay cuentas ni inicio de sesión. Kelvo no usa cookies ni almacenamiento del navegador para rastrearte, y nada de lo que hacés se guarda de nuestro lado.',
         ],
       },
       {

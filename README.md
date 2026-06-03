@@ -26,7 +26,7 @@ Bilingüe **español + inglés** (rutas `/es/` y `/en/`) con SEO internacional (
 [Astro](https://astro.build) — genera **HTML estático** (ideal para que Google indexe), envía
 **cero JavaScript por defecto** y solo carga el JS de la herramienta que se usa. Dependencias de
 runtime mínimas y cargadas solo donde hacen falta: `qr-code-styling` (QR), `jspdf` (export PDF del
-QR, perezoso) y `fflate` (ZIP del lote de imágenes en Pro). El resto usa APIs nativas del navegador
+QR, perezoso) y `fflate` (ZIP del lote de imágenes). El resto usa APIs nativas del navegador
 (Canvas, Web Crypto).
 
 ## Comandos
@@ -90,7 +90,7 @@ sitios estáticos. **Gratis** en Netlify, Vercel, Cloudflare Pages o GitHub Page
    - **Netlify / Vercel / Cloudflare Pages:** conectá el proyecto y usá
      - Build command: `npm run build`
      - Publish/output directory: `dist`
-     - Variables de entorno: `SITE_URL` (y `PRO_CHECKOUT_URL` / `PRO_STORE_ID` cuando actives Pro).
+     - Variables de entorno: `SITE_URL` (y `CONTACT_EMAIL` si querés mostrar un correo propio).
    - **Drag & drop:** en Netlify podés arrastrar la carpeta `dist/` directo a la web.
 
 > Es un sitio estático: **no necesita servidor de Node** en producción.
@@ -127,27 +127,18 @@ mejor rankea.
 
 ---
 
-## 💰 Monetización — Kelvo Pro (pago único, sin anuncios)
+## 💸 Modelo: gratis, sin anuncios y sin pagos
 
-El modelo es un **pago único** (sin suscripción y **sin anuncios**) vía **Lemon Squeezy**, que
-actúa de *Merchant of Record* (cobra el IVA por vos) y cuya **API de licencias funciona 100% desde
-el navegador** — no hace falta servidor.
+Kelvo es **100% gratis**: sin anuncios, sin cuentas, sin suscripción y sin nada que comprar.
+Todas las herramientas — incluido el **procesamiento por lotes + descarga en ZIP** (Comprimir,
+Redimensionar, Convertir) — funcionan completas en el navegador con `fflate`. Nada se sube. La
+lógica de lotes vive en [`src/scripts/batch.ts`](src/scripts/batch.ts); soltás varias imágenes y
+bajás un único ZIP.
 
-- Página de venta + activación: [`src/pages/[lang]/pro.astro`](src/pages/%5Blang%5D/pro.astro)
-  (`/es/pro`, `/en/pro`), enlazada desde el footer.
-- Estado de licencia (cliente): [`src/scripts/pro.ts`](src/scripts/pro.ts) — `isPro()`,
-  `activateLicense(key)`, `deactivate()`. El flag se cachea en `localStorage` (`kelvo_pro`).
-- **Para activarlo:** creá el producto en Lemon Squeezy y definí las variables `PRO_CHECKOUT_URL`
-  y `PRO_STORE_ID` (ver [`.env.example`](.env.example)). Mientras `PRO_CHECKOUT_URL` esté vacío, la
-  página `/pro` muestra "Próximamente" en vez del botón de compra.
-- **Qué se cobra (aditivo, no se quita nada gratis):** la función Pro es el **procesamiento de
-  imágenes por lotes + descarga en ZIP**, ya implementado en Comprimir, Redimensionar y Convertir
-  (arrastrás varias imágenes a la vez y bajás un único ZIP). Todo se procesa en el navegador con
-  `fflate`. Las herramientas siguen 100% gratis para una imagen.
-- **Cómo funciona el gate:** las 3 herramientas de imagen aceptan varios archivos. Si el usuario
-  **no** tiene Pro y suelta varios, ve un *upsell* hacia `/pro` (y se le procesa la primera imagen
-  igual); si `isPro()` es verdadero, se activa el modo lote. La lógica compartida está en
-  [`src/scripts/batch.ts`](src/scripts/batch.ts).
+> Decisión de producto (2026-06): el sitio es un **experimento de SEO orgánico** y pieza de
+> portafolio, no una fuente de ingresos directa. El plan de ingresos vive en otro proyecto. Por eso
+> se quitó toda la capa de pago (no Lemon Squeezy, no `/pro`, no gate): Kelvo queda más útil y
+> limpio, ideal para medir tráfico orgánico.
 
 ---
 

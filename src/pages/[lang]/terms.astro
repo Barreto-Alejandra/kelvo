@@ -1,6 +1,5 @@
 ---
 import { SITE, CONTACT, LEGAL_UPDATED, type Locale } from '@/config';
-import { homePath } from '@/i18n/utils';
 import Layout from '@/layouts/Layout.astro';
 
 export function getStaticPaths() {
@@ -9,7 +8,6 @@ export function getStaticPaths() {
 
 const { locale } = Astro.props as { locale: Locale };
 const path = `/${locale}/terms`;
-const proPath = `${homePath(locale)}/pro`;
 const mail = CONTACT.email;
 const updated = LEGAL_UPDATED[locale];
 
@@ -17,7 +15,7 @@ const C = {
   en: {
     title: 'Terms of Use',
     desc:
-      'The simple terms for using Kelvo and Kelvo Pro: free browser-based tools, a one-time upgrade, and a 14-day no-questions refund.',
+      'The simple terms for using Kelvo: free, browser-based tools, used as is, with nothing to buy.',
     updatedLabel: 'Last updated',
     lede: 'These are the plain-language terms for using Kelvo. By using the site you agree to them.',
     sections: [
@@ -34,23 +32,9 @@ const C = {
         ],
       },
       {
-        h: 'Kelvo Pro',
-        body: [
-          'Kelvo Pro is a <strong>one-time purchase</strong> that unlocks batch processing and one-click ZIP downloads on your device. It is not a subscription and does not auto-renew. Pro is sold and billed by <strong>Lemon Squeezy</strong> as Merchant of Record. See <a href="' +
-            proPath +
-            '">the Pro page</a> for what’s included.',
-        ],
-      },
-      {
-        h: 'Refunds',
-        body: [
-          '<strong>14-day, no-questions-asked.</strong> If Kelvo Pro isn’t for you, contact us within 14 days of your purchase for a full refund. No need to explain why.',
-        ],
-      },
-      {
         h: 'Acceptable use',
         body: [
-          'Please don’t use Kelvo for anything unlawful, and don’t try to break, overload or abuse the service or work around the Pro features.',
+          'Please don’t use Kelvo for anything unlawful, and don’t try to break, overload or abuse the service.',
         ],
       },
       {
@@ -74,7 +58,7 @@ const C = {
   es: {
     title: 'Términos de uso',
     desc:
-      'Los términos simples para usar Kelvo y Kelvo Pro: herramientas gratis en el navegador, una mejora de pago único y reembolso de 14 días sin preguntas.',
+      'Los términos simples para usar Kelvo: herramientas gratis en el navegador, usadas tal cual y sin nada que comprar.',
     updatedLabel: 'Última actualización',
     lede: 'Estos son los términos, en lenguaje claro, para usar Kelvo. Al usar el sitio, los aceptás.',
     sections: [
@@ -91,23 +75,9 @@ const C = {
         ],
       },
       {
-        h: 'Kelvo Pro',
-        body: [
-          'Kelvo Pro es una <strong>compra de pago único</strong> que desbloquea el procesamiento por lotes y la descarga en ZIP de un clic en tu dispositivo. No es una suscripción y no se renueva sola. Pro lo vende y factura <strong>Lemon Squeezy</strong> como Merchant of Record. Mirá <a href="' +
-            proPath +
-            '">la página de Pro</a> para ver qué incluye.',
-        ],
-      },
-      {
-        h: 'Reembolsos',
-        body: [
-          '<strong>14 días, sin preguntas.</strong> Si Kelvo Pro no es para vos, contactanos dentro de los 14 días de tu compra y te devolvemos el importe completo. No hace falta que expliques por qué.',
-        ],
-      },
-      {
         h: 'Uso aceptable',
         body: [
-          'Por favor, no uses Kelvo para nada ilegal, y no intentes romper, sobrecargar o abusar del servicio, ni evadir las funciones de Pro.',
+          'Por favor, no uses Kelvo para nada ilegal, y no intentes romper, sobrecargar o abusar del servicio.',
         ],
       },
       {

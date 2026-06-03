@@ -2,7 +2,6 @@
 import type { Locale } from '@/config';
 import type { Tool } from '@/i18n/tools';
 import { useTranslations } from '@/i18n/ui';
-import { homePath } from '@/i18n/utils';
 
 interface Props {
   tool: Tool;
@@ -11,7 +10,6 @@ interface Props {
 const { tool, locale } = Astro.props;
 const L = tool.content[locale].ui;
 const t = useTranslations(locale);
-const proPath = `${homePath(locale)}/pro`;
 ---
 
 <div class="panel">
@@ -19,6 +17,7 @@ const proPath = `${homePath(locale)}/pro`;
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M8 8l4-4 4 4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
     <p><strong>{t('common.dropHere')}</strong></p>
     <p class="muted">{t('common.dropHint')}</p>
+    <p class="muted">{t('batch.multiHint')}</p>
     <input type="file" id="cz-input" accept="image/*" multiple class="hidden" />
   </div>
 
@@ -53,16 +52,7 @@ const proPath = `${homePath(locale)}/pro`;
     </div>
   </div>
 
-  <!-- Free tier: dropped many → gentle upsell (still loads the first image above) -->
-  <div id="cz-upsell" class="upsell hidden" data-selected={t('batch.selectedN')}>
-    <span class="badge-pro">PRO</span>
-    <p class="upsell-title">{t('batch.upsellTitle')}</p>
-    <p><strong id="cz-upsell-n"></strong> {t('batch.upsellBody')}</p>
-    <p class="muted">{t('batch.upsellShowingOne')}</p>
-    <a class="btn" href={proPath}>{t('pro.buy')}</a>
-  </div>
-
-  <!-- Pro: batch mode -->
+  <!-- Batch mode (free): drop several images, download one ZIP -->
   <div
     id="cz-batch"
     class="batch hidden"
@@ -72,7 +62,6 @@ const proPath = `${homePath(locale)}/pro`;
     data-too-many={t('batch.tooMany')}
   >
     <div class="batch-head">
-      <span class="badge-pro">PRO</span>
       <strong><span id="cz-batch-n">0</span> {t('batch.ready')}</strong>
     </div>
 
@@ -110,7 +99,6 @@ const proPath = `${homePath(locale)}/pro`;
     setupDropzone, loadImage, formatBytes, renderCanvas, canvasToBlob, triggerDownload,
     baseName, EXT, type LoadedImage,
   } from '@/scripts/image-utils';
-  import { isPro } from '@/scripts/pro';
   import { processToZip, MAX_BATCH } from '@/scripts/batch';
 
   const $ = (id: string) => document.getElementById(id) as HTMLElement;
@@ -125,8 +113,6 @@ const proPath = `${homePath(locale)}/pro`;
   const compEl = $('cz-comp');
   const savedEl = $('cz-saved');
 
-  const upsell = $('cz-upsell');
-  const upsellN = $('cz-upsell-n');
   const batch = $('cz-batch');
   const batchN = $('cz-batch-n');
   const bfmt = $('cz-bfmt') as HTMLSelectElement;
@@ -176,15 +162,8 @@ const proPath = `${homePath(locale)}/pro`;
   setupDropzone(
     drop, input,
     (data) => { drop.classList.add('hidden'); loadSingle(data); },
-    (files) => { isPro() ? startBatch(files) : showUpsell(files); },
+    (files) => startBatch(files),
   );
-
-  function showUpsell(files: File[]) {
-    upsellN.textContent = (upsell.dataset.selected || '').replace('%n', String(files.length));
-    drop.classList.add('hidden');
-    upsell.classList.remove('hidden');
-    loadImage(files[0]).then(loadSingle).catch(() => {});
-  }
 
   function startBatch(files: File[]) {
     batchFiles = files.slice(0, MAX_BATCH);
@@ -246,7 +225,6 @@ const proPath = `${homePath(locale)}/pro`;
     current = null; outBlob = null; outUrl = ''; batchFiles = [];
     input.value = '';
     work.classList.add('hidden');
-    upsell.classList.add('hidden');
     batch.classList.add('hidden');
     batchStatus.textContent = '';
     drop.classList.remove('hidden');

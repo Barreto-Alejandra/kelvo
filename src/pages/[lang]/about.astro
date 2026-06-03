@@ -1,6 +1,5 @@
 ---
 import { SITE, CONTACT, type Locale } from '@/config';
-import { homePath } from '@/i18n/utils';
 import Layout from '@/layouts/Layout.astro';
 
 export function getStaticPaths() {
@@ -9,7 +8,6 @@ export function getStaticPaths() {
 
 const { locale } = Astro.props as { locale: Locale };
 const path = `/${locale}/about`;
-const proPath = `${homePath(locale)}/pro`;
 const mail = CONTACT.email;
 
 const C = {
@@ -34,11 +32,9 @@ const C = {
         ],
       },
       {
-        h: 'How Kelvo stays free',
+        h: 'Free, no catch',
         body: [
-          'The tools are free and will stay free. There are <strong>no ads</strong>. If you’d like to support the project and unlock extra power — batch processing and one-click ZIP downloads — there’s a one-time <a href="' +
-            proPath +
-            '">Kelvo Pro</a> upgrade. Pay once, no subscription, ever.',
+          'Every tool is free, with <strong>no ads and nothing to buy</strong> — including batch processing and one-click ZIP downloads. The best way to support the project is simply to share it with someone who’d find it useful.',
         ],
       },
       {
@@ -75,11 +71,9 @@ const C = {
         ],
       },
       {
-        h: 'Cómo se mantiene gratis',
+        h: 'Gratis, sin trucos',
         body: [
-          'Las herramientas son gratis y van a seguir siéndolo. <strong>No hay anuncios.</strong> Si querés apoyar el proyecto y desbloquear potencia extra — procesamiento por lotes y descarga en ZIP de un clic — existe la mejora de pago único <a href="' +
-            proPath +
-            '">Kelvo Pro</a>. Pagás una vez, sin suscripción, nunca.',
+          'Cada herramienta es gratis, <strong>sin anuncios y sin nada que comprar</strong> — incluido el procesamiento por lotes y la descarga en ZIP de un clic. La mejor forma de apoyar el proyecto es simplemente compartirlo con alguien a quien le sirva.',
         ],
       },
       {
